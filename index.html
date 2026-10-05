@@ -47,6 +47,15 @@ button{font:inherit;color:inherit;cursor:pointer;-webkit-appearance:none;appeara
 .lvh span{font-weight:800;background:rgba(255,255,255,.22);padding:4px 10px;border-radius:10px;font-size:14px;white-space:nowrap}
 .lvbar{height:8px;background:rgba(0,0,0,.15);border-radius:4px;margin-top:10px;overflow:hidden}
 .lvbar i{display:block;height:100%;background:#fff;border-radius:4px}
+.lvsub{margin-top:8px;font-size:13px;font-weight:700;opacity:.9}
+/* 级别标签：一次只看一个级别 */
+.lvtabs{position:relative;max-width:600px;margin:8px auto 0;display:flex;gap:8px;overflow-x:auto;padding:2px 2px 6px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.lvtabs::-webkit-scrollbar{display:none}
+.lvtab{flex:none;min-width:56px;border:2px solid var(--line);border-bottom-width:4px;border-radius:14px;background:#fff;color:var(--muted);
+  padding:5px 10px 4px;font-weight:900;font-size:17px;line-height:1.1;display:flex;flex-direction:column;align-items:center}
+.lvtab small{font-size:11px;font-weight:700;opacity:.8}
+.lvtab.on{background:var(--c);border-color:var(--cd);color:#fff}
+.lvtab:active{transform:translateY(2px)}
 .ut{display:flex;align-items:center;gap:12px;color:var(--muted);font-weight:800;font-size:16px;margin:26px 0 4px}
 .ut::before,.ut::after{content:"";flex:1;height:2px;background:var(--line)}
 .nodes{display:flex;flex-direction:column;align-items:center;gap:20px;padding-top:44px}
@@ -222,7 +231,7 @@ mark{background:#fff3b0;color:inherit;border-radius:6px;padding:0 4px}
     <div class="chip fire" id="hFire">🔥 <span>0</span></div>
     <div class="chip xp" id="hXp">⭐ <span>0</span></div>
     <button class="icon-btn" id="hSet" aria-label="设置"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
-  </div></header>
+  </div><nav class="lvtabs" id="lvTabs" aria-label="选择级别"></nav></header>
   <main class="path" id="path"></main>
 </section>
 
@@ -251,7 +260,7 @@ mark{background:#fff3b0;color:inherit;border-radius:6px;padding:0 4px}
 
 <script>
 'use strict';
-const VERSION='1.4';
+const VERSION='1.5';
 const KEY='moon-english-v1';
 
 /* ================= 课程内容 =================
@@ -278,7 +287,9 @@ fish|🐟|鱼
 bird|🐦|鸟
 rabbit|🐰|兔子
 bear|🐻|熊
-frog|🐸|青蛙`),
+frog|🐸|青蛙
+fox|🦊|狐狸
+owl|🦉|猫头鹰`),
 U('食物 Food','🍎',`
 apple|🍎|苹果
 banana|🍌|香蕉
@@ -288,17 +299,23 @@ milk|🥛|牛奶
 egg|🥚|鸡蛋
 cake|🍰|蛋糕
 bread|🍞|面包
-ice cream|🍦|冰淇淋`),
+ice cream|🍦|冰淇淋
+rice|🍚|米饭
+noodles|🍜|面条
+soup|🍲|汤`),
 U('颜色 Colors','🎨',`
-red|🔴|红色
-blue|🔵|蓝色
-green|🟢|绿色
-yellow|🟡|黄色
-black|⚫|黑色
-white|⚪|白色
-purple|🟣|紫色
-brown|🟤|棕色`),
+red|#none [dot=e53935]@50,50,62|红色
+blue|#none [dot=1e88e5]@50,50,62|蓝色
+green|#none [dot=43a047]@50,50,62|绿色
+yellow|#none [dot=fdd835]@50,50,62|黄色
+black|#none [dot=212121]@50,50,62|黑色
+white|#none [dot=ffffff]@50,50,62|白色
+purple|#none [dot=8e24aa]@50,50,62|紫色
+brown|#none [dot=795548]@50,50,62|棕色
+pink|#none [dot=f48fb1]@50,50,62|粉色
+gray|#none [dot=9e9e9e]@50,50,62|灰色`),
 U('数字 Numbers','🔢',`
+zero|0️⃣|零
 one|1️⃣|一
 two|2️⃣|二
 three|3️⃣|三
@@ -317,7 +334,11 @@ mouth|👄|嘴巴
 hand|✋|手
 foot|🦶|脚
 leg|🦵|腿
-tooth|🦷|牙齿`),
+tooth|🦷|牙齿
+arm|💪|手臂
+finger|☝️|手指
+tongue|👅|舌头
+bone|🦴|骨头`),
 U('家人 Family','👪',`
 mom|👩|妈妈
 dad|👨|爸爸
@@ -326,6 +347,8 @@ boy|👦|男孩
 girl|👧|女孩
 grandma|👵|奶奶
 grandpa|👴|爷爷
+kid|🧒|小孩
+friend|🧑‍🤝‍🧑|朋友
 family|👨‍👩‍👧‍👦|一家人`),
 U('水果 Fruits','🍓',`
 strawberry|🍓|草莓
@@ -337,7 +360,9 @@ lemon|🍋|柠檬
 pineapple|🍍|菠萝
 mango|🥭|芒果
 kiwi|🥝|猕猴桃
-coconut|🥥|椰子`),
+coconut|🥥|椰子
+blueberries|🫐|蓝莓
+avocado|🥑|牛油果`),
 U('玩具 Toys','🧸',`
 teddy bear|🧸|泰迪熊
 kite|🪁|风筝
@@ -346,7 +371,11 @@ robot|🤖|机器人
 drum|🥁|鼓
 puzzle|🧩|拼图
 yo-yo|🪀|悠悠球
-doll|🪆|娃娃`),
+doll|🪆|娃娃
+ball|⚽|球
+blocks|🧱|积木
+dice|🎲|骰子
+game|🎮|游戏`),
 U('衣服 Clothes','👕',`
 shirt|👕|衬衫
 pants|👖|裤子
@@ -357,7 +386,9 @@ boots|👢|靴子
 gloves|🧤|手套
 scarf|🧣|围巾
 cap|🧢|棒球帽
-glasses|👓|眼镜`),
+glasses|👓|眼镜
+hat|👒|帽子
+shoes|👞|鞋子`),
 U('农场 Farm','🐔',`
 horse|🐴|马
 sheep|🐑|绵羊
@@ -367,18 +398,36 @@ chick|🐤|小鸡
 rooster|🐓|公鸡
 turkey|🦃|火鸡
 mouse|🐭|老鼠
-llama|🦙|羊驼`),
+llama|🦙|羊驼
+ox|🐂|公牛
+ram|🐏|公羊
+tractor|🚜|拖拉机`),
+U('心情 Feelings','😀',`
+happy|😀|开心
+sad|😢|难过
+angry|😠|生气
+scared|😱|害怕
+sleepy|😴|困
+silly|🤪|调皮
+surprised|😮|惊讶
+sick|🤒|生病
+tired|😫|累
+shy|😳|害羞
+hot|🥵|热
+cold|🥶|冷`),
 U('交通工具 Vehicles','🚗',`
 car|🚗|汽车
 bus|🚌|公交车
 train|🚆|火车
 plane|✈️|飞机
-boat|⛵|船
+boat|⛵|帆船
 bike|🚲|自行车
 truck|🚚|卡车
 taxi|🚕|出租车
 helicopter|🚁|直升机
-rocket|🚀|火箭`),
+rocket|🚀|火箭
+ship|🚢|轮船
+motorcycle|🏍️|摩托车`),
 U('形状 Shapes','🔺',`
 circle|#none [circle]@50,50,64|圆形
 square|#none [square]@50,50,64|正方形
@@ -387,7 +436,9 @@ rectangle|#none [rectangle]@50,50,78|长方形
 oval|#none [oval]@50,50,74|椭圆形
 star|#none [star]@50,52,74|星形
 heart|#none [heart]@50,52,72|心形
-diamond|#none [diamond]@50,50,66|菱形`),
+diamond|#none [diamond]@50,50,66|菱形
+pentagon|#none [pentagon]@50,52,68|五边形
+hexagon|#none [hexagon]@50,50,68|六边形`),
 U('动物园 Zoo','🦁',`
 lion|🦁|狮子
 tiger|🐯|老虎
@@ -398,7 +449,9 @@ zebra|🦓|斑马
 panda|🐼|熊猫
 hippo|🦛|河马
 kangaroo|🦘|袋鼠
-snake|🐍|蛇`),
+snake|🐍|蛇
+gorilla|🦍|大猩猩
+rhino|🦏|犀牛`),
 U('蔬菜 Vegetables','🥕',`
 carrot|🥕|胡萝卜
 corn|🌽|玉米
@@ -409,7 +462,9 @@ onion|🧅|洋葱
 mushroom|🍄|蘑菇
 cucumber|🥒|黄瓜
 lettuce|🥬|生菜
-garlic|🧄|大蒜`),
+garlic|🧄|大蒜
+pepper|🌶️|辣椒
+sweet potato|🍠|红薯`),
 U('零食 Snacks','🍕',`
 pizza|🍕|披萨
 cookie|🍪|饼干
@@ -420,7 +475,9 @@ hot dog|🌭|热狗
 sandwich|🥪|三明治
 donut|🍩|甜甜圈
 popcorn|🍿|爆米花
-juice|🧃|果汁`),
+juice|🧃|果汁
+fries|🍟|薯条
+cupcake|🧁|纸杯蛋糕`),
 U('家里 House','🏠',`
 house|🏠|房子
 window|🪟|窗户
@@ -430,7 +487,10 @@ bathtub|🛁|浴缸
 toilet|🚽|马桶
 TV|📺|电视
 key|🔑|钥匙
-phone|📱|手机`),
+phone|📱|手机
+bed|🛏️|床
+chair|🪑|椅子
+door|🚪|门`),
 U('学校 School','🏫',`
 pencil|✏️|铅笔
 crayon|🖍️|蜡笔
@@ -441,7 +501,22 @@ books|📚|书
 pen|🖊️|钢笔
 paper|📄|纸
 teacher|🧑‍🏫|老师
-school|🏫|学校`),
+school|🏫|学校
+computer|💻|电脑
+notebook|📓|笔记本`),
+U('天气 Weather','⛅',`
+sun|☀️|太阳
+rain|🌧️|雨
+snow|❄️|雪
+wind|🌬️|风
+cloud|☁️|云
+rainbow|🌈|彩虹
+storm|⛈️|暴风雨
+fog|🌫️|雾
+lightning|⚡|闪电
+tornado|🌪️|龙卷风
+umbrella|☂️|雨伞
+ice|🧊|冰`),
 U('小虫子 Bugs','🐞',`
 bee|🐝|蜜蜂
 ant|🐜|蚂蚁
@@ -450,7 +525,10 @@ ladybug|🐞|瓢虫
 snail|🐌|蜗牛
 spider|🕷️|蜘蛛
 caterpillar|🐛|毛毛虫
-worm|🪱|虫子`),
+worm|🪱|虫子
+fly|🪰|苍蝇
+cricket|🦗|蟋蟀
+mosquito|🦟|蚊子`),
 U('海洋 Sea','🐳',`
 whale|🐳|鲸鱼
 dolphin|🐬|海豚
@@ -461,16 +539,177 @@ turtle|🐢|乌龟
 shrimp|🦐|虾
 seal|🦭|海豹
 shell|🐚|贝壳
-penguin|🐧|企鹅`),
-U('心情 Feelings','😀',`
-happy|😀|开心
-sad|😢|难过
-angry|😠|生气
-scared|😱|害怕
-sleepy|😴|困
-silly|🤪|调皮
-surprised|😮|惊讶
-sick|🤒|生病`)
+penguin|🐧|企鹅
+squid|🦑|鱿鱼
+lobster|🦞|龙虾`),
+U('大自然 Nature','🌳',`
+tree|🌳|树
+flower|🌸|花
+leaf|🍃|叶子
+plant|🌱|植物
+rock|🪨|石头
+mountain|⛰️|山
+volcano|🌋|火山
+island|🏝️|小岛
+desert|🏜️|沙漠
+sea|🌊|大海
+beach|🏖️|海滩
+forest|🌲|森林`),
+U('动作 Actions','👏',`
+clap|👏|拍手
+wave|👋|挥手
+read|📖|读
+write|✍️|写
+paint|🎨|画画
+climb|🧗|爬
+ride|🚴|骑
+stand|🧍|站
+hug|🤗|拥抱
+think|🤔|想
+talk|🗣️|说话
+look|👀|看`),
+U('厨房 Kitchen','🥄',`
+spoon|🥄|勺子
+fork|🍴|叉子
+knife|🔪|刀
+bowl|🥣|碗
+plate|🍽️|盘子
+chopsticks|🥢|筷子
+cup|🥤|杯子
+mug|☕|马克杯
+teapot|🫖|茶壶
+pan|🍳|平底锅
+bottle|🍼|奶瓶
+salt|🧂|盐`),
+U('更多食物 More food','🥞',`
+pancake|🥞|煎饼
+waffle|🧇|华夫饼
+bacon|🥓|培根
+honey|🍯|蜂蜜
+butter|🧈|黄油
+salad|🥗|沙拉
+meat|🍖|肉
+dumplings|🥟|饺子
+sushi|🍣|寿司
+taco|🌮|墨西哥卷饼
+spaghetti|🍝|意大利面
+tea|🍵|茶`),
+U('运动 Sports','🏀',`
+soccer|⚽|足球
+basketball|🏀|篮球
+baseball|⚾|棒球
+football|🏈|橄榄球
+tennis|🎾|网球
+golf|⛳|高尔夫
+bowling|🎳|保龄球
+volleyball|🏐|排球
+hockey|🏒|冰球
+boxing|🥊|拳击
+skateboard|🛹|滑板
+trophy|🏆|奖杯`),
+U('音乐和娱乐 Music & fun','🎸',`
+guitar|🎸|吉他
+piano|🎹|钢琴
+violin|🎻|小提琴
+trumpet|🎺|小号
+saxophone|🎷|萨克斯
+microphone|🎤|麦克风
+headphones|🎧|耳机
+radio|📻|收音机
+banjo|🪕|班卓琴
+camera|📷|相机
+movie|🎬|电影
+music|🎵|音乐`),
+U('职业 Jobs','🧑‍⚕️',`
+doctor|🧑‍⚕️|医生
+police officer|👮|警察
+firefighter|🧑‍🚒|消防员
+farmer|🧑‍🌾|农民
+cook|🧑‍🍳|厨师
+pilot|🧑‍✈️|飞行员
+artist|🧑‍🎨|画家
+singer|🧑‍🎤|歌手
+astronaut|🧑‍🚀|宇航员
+builder|👷|建筑工人
+scientist|🧑‍🔬|科学家`),
+U('地方 Places','🏞️',`
+park|🏞️|公园
+zoo|🦁🦓|动物园
+hospital|🏥|医院
+store|🏪|商店
+bank|🏦|银行
+hotel|🏨|酒店
+castle|🏰|城堡
+bridge|🌉|桥
+tent|⛺|帐篷
+museum|🏛️|博物馆
+city|🏙️|城市
+stadium|🏟️|体育场`),
+U('野生动物 Wild animals','🦅',`
+eagle|🦅|老鹰
+parrot|🦜|鹦鹉
+swan|🦢|天鹅
+peacock|🦚|孔雀
+flamingo|🦩|火烈鸟
+dove|🕊️|鸽子
+bat|🦇|蝙蝠
+wolf|🐺|狼
+deer|🦌|鹿
+squirrel|🐿️|松鼠
+raccoon|🦝|浣熊
+hedgehog|🦔|刺猬`),
+U('家里的东西 Things','🧼',`
+soap|🧼|肥皂
+toothbrush|🪥|牙刷
+sponge|🧽|海绵
+bucket|🪣|水桶
+mirror|🪞|镜子
+broom|🧹|扫帚
+basket|🧺|篮子
+shower|🚿|淋浴
+box|📦|箱子
+lock|🔒|锁
+bell|🔔|铃铛
+candle|🕯️|蜡烛`),
+U('节日和时间 Holidays','🎄',`
+morning|🌅|早上
+night|🌃|晚上
+clock|⏰|时钟
+calendar|📅|日历
+birthday|🎂|生日
+Christmas|🎄|圣诞节
+Halloween|🎃|万圣节
+Spring Festival|🧧|春节
+fireworks|🎆|烟花
+party|🎉|派对
+gift|🎁|礼物
+snowman|⛄|雪人`),
+U('相反词 Opposites','↕️',`
+big|#sky 🐘@50,52,72|大
+small|#sky 🐭@50,68,22|小
+tall|#sky 🌳@50,44,80|高
+short|#sky 🌳@50,64,26|矮
+up|⬆️|上
+down|⬇️|下
+left|⬅️|左
+right|➡️|右
+fast|🐆💨|快
+slow|🐌|慢
+full|#none [glassfull]@50,52,60|满的
+empty|#none [glassempty]@50,52,60|空的`),
+U('童话人物 Story people','🧚',`
+king|🤴|国王
+princess|👸|公主
+fairy|🧚|仙女
+wizard|🧙|巫师
+mermaid|🧜‍♀️|美人鱼
+ghost|👻|幽灵
+alien|👽|外星人
+dragon|🐉|龙
+unicorn|🦄|独角兽
+elf|🧝|小精灵
+superhero|🦸|超级英雄
+pirate|🏴‍☠️|海盗`)
 ]},
 {id:'A',name:'A',title:'常用词和短语',c:'#1cb0f6',cd:'#1899d6',units:[
 U('身边的东西 Things','🎒',`
@@ -503,7 +742,9 @@ Good night!|🌙😴|晚安！
 Thank you!|🙏|谢谢！
 I'm sorry.|😔|对不起。
 Happy birthday!|🎂🎉|生日快乐！
-I love you!|🥰❤️|我爱你！`),
+I love you!|🥰❤️|我爱你！
+Please.|🥺|请。
+Excuse me.|🙋|打扰一下。`),
 U('什么颜色 Color + Thing','🍏',`
 a red apple|🍎|一个红苹果
 a green apple|🍏|一个青苹果
@@ -524,7 +765,8 @@ two dogs|🐶🐶|两只狗
 three dogs|🐶🐶🐶|三只狗
 two balls|⚽⚽|两个球
 four stars|⭐⭐⭐⭐|四颗星星
-five ducks|🦆🦆🦆🦆🦆|五只鸭子`),
+five ducks|🦆🦆🦆🦆🦆|五只鸭子
+four apples|🍎🍎🍎🍎|四个苹果`),
 U('动作 Actions','🏃',`
 run|🏃|跑
 walk|🚶|走路
@@ -544,7 +786,9 @@ a small ball|#sky ⚽@50,66,18|一个小球
 a big fish|#water 🐟@50,50,66|一条大鱼
 a small fish|#water 🐟@50,50,18|一条小鱼
 a big tree|#sky 🌳@50,44,80|一棵大树
-a small tree|#sky 🌳@50,64,26|一棵小树`),
+a small tree|#sky 🌳@50,64,26|一棵小树
+a big cat|#sky 🐈@50,54,62|一只大猫
+a small cat|#sky 🐈@50,68,20|一只小猫`),
 U('我的身体 My body','👀',`
 my eyes|👀|我的眼睛
 my ears|👂|我的耳朵
@@ -553,7 +797,9 @@ my mouth|👄|我的嘴巴
 my hands|👐|我的双手
 my feet|🦶|我的脚
 my hair|💇|我的头发
-my teeth|🦷|我的牙齿`),
+my teeth|🦷|我的牙齿
+my arms|💪|我的手臂
+my fingers|🖐️|我的手指`),
 U('我的家人 My family','👨‍👩‍👧',`
 my mom|👩|我的妈妈
 my dad|👨|我的爸爸
@@ -562,7 +808,9 @@ my big brother|👦|我的哥哥
 my grandma|👵|我的奶奶
 my grandpa|👴|我的爷爷
 my friend|🧑‍🤝‍🧑|我的朋友
-my dog|🐕|我的狗`),
+my dog|🐕|我的狗
+my cat|🐈|我的猫
+my teacher|🧑‍🏫|我的老师`),
 U('什么颜色 2 Colors','🐷',`
 a pink pig|🐷|一头粉色的猪
 a yellow duck|🐥|一只黄色的鸭子
@@ -582,7 +830,9 @@ It is a bus.|🚌|它是一辆公交车。
 It is a cake.|🎂|它是一个蛋糕。
 It is a bee.|🐝|它是一只蜜蜂。
 It is an apple.|🍎|它是一个苹果。
-It is a hat.|🎩|它是一顶帽子。`),
+It is a hat.|🎩|它是一顶帽子。
+It is an ant.|🐜|它是一只蚂蚁。
+It is a kite.|🪁|它是一只风筝。`),
 U('看那个 Look at','👀',`
 Look at the fish.|🐠|看那条鱼。
 Look at the frog.|🐸|看那只青蛙。
@@ -591,7 +841,9 @@ Look at the kite.|🪁|看那只风筝。
 Look at the plane.|✈️|看那架飞机。
 Look at the flower.|🌻|看那朵花。
 Look at the snowman.|⛄|看那个雪人。
-Look at the stars.|✨|看那些星星。`),
+Look at the stars.|✨|看那些星星。
+Look at the moon.|🌕|看那个月亮。
+Look at the bus.|🚌|看那辆公交车。`),
 U('在哪里 Places','🏞️',`
 at the park|🏞️|在公园
 at the zoo|🦁🦓|在动物园
@@ -601,7 +853,8 @@ at the store|🏪|在商店
 at school|🏫|在学校
 at the hospital|🏥|在医院
 at the library|📚|在图书馆
-at home|🏠|在家`),
+at home|🏠|在家
+at the airport|🛫|在机场`),
 U('生日派对 Party','🎂',`
 a birthday cake|🎂|一个生日蛋糕
 a gift|🎁|一份礼物
@@ -610,7 +863,9 @@ a party hat|🥳|一顶派对帽
 candles|🕯️|蜡烛
 a card|💌|一张贺卡
 a cupcake|🧁|一个纸杯蛋糕
-music|🎵|音乐`),
+music|🎵|音乐
+a piñata|🪅|一个彩罐
+games|🎲|游戏`),
 U('运动 Sports','⚽',`
 play soccer|⚽|踢足球
 play basketball|🏀|打篮球
@@ -619,7 +874,9 @@ play tennis|🎾|打网球
 play ping-pong|🏓|打乒乓球
 go skating|⛸️|去滑冰
 go skiing|⛷️|去滑雪
-go swimming|🏊‍♀️|去游泳`)
+go swimming|🏊‍♀️|去游泳
+play football|🏈|打橄榄球
+go fishing|🎣|去钓鱼`)
 ]},
 {id:'B',name:'B',title:'第一批句子',c:'#ce82ff',cd:'#a568cc',units:[
 U('我看见 I see','👀',`
@@ -1015,7 +1272,8 @@ Dinosaurs lived a long time ago.|🦕🦖|恐龙生活在很久很久以前。`)
 
 /* ================= 索引 ================= */
 const ALL=[],UNITS=[];
-function chunk(a){const r=[];for(let i=0;i<a.length;i+=3)r.push(a.slice(i,i+3));if(r.length>1&&r[r.length-1].length<2){const l=r.pop();r[r.length-1]=r[r.length-1].concat(l)}return r}
+// 每节新课 5–6 个新词（12 个词的单元分 6+6，10 个分 5+5），再加 1 节复习课
+function chunk(a){const n=Math.ceil(a.length/6.5),r=[];let s=0;for(let i=1;i<=n;i++){const e=Math.round(a.length*i/n);r.push(a.slice(s,e));s=e}return r}
 LEVELS.forEach((lv,li)=>lv.units.forEach((u,ui)=>{
   u.li=li;u.ui=ui;u.key=lv.id+'.'+ui;u.gi=UNITS.length;u.level=lv;
   u.items.forEach(it=>{it.id=lv.id+'|'+it.text;it.unit=u;ALL.push(it)});
@@ -1024,7 +1282,7 @@ LEVELS.forEach((lv,li)=>lv.units.forEach((u,ui)=>{
 }));
 
 /* ================= 存档 ================= */
-const DEF={done:{},stats:{},xp:0,streak:0,last:'',set:{rate:.85,text:true,sfx:true,all:false,voice:'',group:true,engine:'auto'}};
+const DEF={done:{},stats:{},xp:0,streak:0,last:'',lv:-1,set:{rate:.85,text:true,sfx:true,all:false,voice:'',group:true,engine:'auto'}};
 let S;
 try{S=JSON.parse(localStorage.getItem(KEY))||{}}catch(e){S={}}
 S=Object.assign({},DEF,S);S.set=Object.assign({},DEF.set,S.set||{});
@@ -1055,6 +1313,7 @@ function glass(x,y,s,full){
   return (full?`<path d="M${r2(x-hw(.2))} ${r2(w)}L${r2(x-s*.225)} ${r2(b)}L${r2(x+s*.225)} ${r2(b)}L${r2(x+hw(.2))} ${r2(w)}z" fill="#6cc6f2"/>`:'')+
     `<path d="M${r2(x-s*.3)} ${r2(t)}L${r2(x-s*.225)} ${r2(b)}L${r2(x+s*.225)} ${r2(b)}L${r2(x+s*.3)} ${r2(t)}" fill="none" stroke="#9aa9b5" stroke-width="1.6" stroke-linejoin="round"/>`;
 }
+const poly=(x,y,s,n)=>`<path d="${Array.from({length:n},(_,i)=>{const a=-Math.PI/2+i*2*Math.PI/n;return (i?'L':'M')+r2(x+s/2*Math.cos(a))+' '+r2(y+s/2*Math.sin(a))}).join('')}z"/>`;
 const shape=el=>`<g fill="#7fd0f7" stroke="#2a8fc4" stroke-width="2.4" stroke-linejoin="round">${el}</g>`;
 const PROP={
   table:(x,y,s)=>{const l=x-s/2;return `<rect x="${l}" y="${y}" width="${s}" height="${r2(s*.07)}" rx="1.2" fill="#b9773c"/><rect x="${r2(l+s*.08)}" y="${r2(y+s*.06)}" width="${r2(s*.06)}" height="${r2(s*.39)}" fill="#9a5f2c"/><rect x="${r2(l+s*.86)}" y="${r2(y+s*.06)}" width="${r2(s*.06)}" height="${r2(s*.39)}" fill="#9a5f2c"/>`},
@@ -1071,6 +1330,10 @@ const PROP={
   diamond:(x,y,s)=>shape(`<path d="M${x} ${y-s/2}L${r2(x+s*.38)} ${y}L${x} ${y+s/2}L${r2(x-s*.38)} ${y}z"/>`),
   star:(x,y,s)=>shape(`<path d="${Array.from({length:10},(_,i)=>{const a=-Math.PI/2+i*Math.PI/5,r=i%2?s*.21:s*.5;return (i?'L':'M')+r2(x+r*Math.cos(a))+' '+r2(y+r*Math.sin(a))}).join('')}z"/>`),
   heart:(x,y,s)=>shape(`<path d="M${x} ${r2(y+s*.38)}C${r2(x-s*.62)} ${r2(y-s*.02)} ${r2(x-s*.28)} ${r2(y-s*.48)} ${x} ${r2(y-s*.18)}C${r2(x+s*.28)} ${r2(y-s*.48)} ${r2(x+s*.62)} ${r2(y-s*.02)} ${x} ${r2(y+s*.38)}z"/>`),
+  pentagon:(x,y,s)=>shape(poly(x,y,s,5)),
+  hexagon:(x,y,s)=>shape(poly(x,y,s,6)),
+  // 颜色圆点：[dot=e53935]，和形状一样是平涂，十种颜色风格统一
+  dot:(x,y,s,c)=>`<circle cx="${x}" cy="${y}" r="${s/2}" fill="#${c||'999'}" stroke="rgba(0,0,0,.22)" stroke-width="1.6"/>`,
   pond:(x,y,s)=>`<ellipse cx="${x}" cy="${y}" rx="${s/2}" ry="${r2(s*.15)}" fill="#5cc3f0" stroke="#3fa9db" stroke-width="1"/>`,
   pencil:(x,y,s)=>{const l=x-s/2,h=7,t=8,e=x+s/2;return `<rect x="${l}" y="${y-h/2}" width="5" height="${h}" rx="1.5" fill="#ff8fab"/><rect x="${l+5}" y="${y-h/2}" width="2" height="${h}" fill="#c0c0c0"/><rect x="${l+7}" y="${y-h/2}" width="${s-7-t}" height="${h}" fill="#ffcc33"/><rect x="${l+7}" y="${y-h/2}" width="${s-7-t}" height="${r2(h/3)}" fill="#ffdb66"/><path d="M${e-t} ${y-h/2}L${e} ${y}L${e-t} ${y+h/2}z" fill="#f1c27d"/><path d="M${r2(e-t*.35)} ${r2(y-h*.18)}L${e} ${y}L${r2(e-t*.35)} ${r2(y+h*.18)}z" fill="#444"/>`},
   glassfull:(x,y,s)=>glass(x,y,s,true),
@@ -1083,8 +1346,8 @@ function sceneSVG(pic){
   for(const t of tk){
     const at=t.lastIndexOf('@');if(at<0)continue;
     const what=t.slice(0,at),a=t.slice(at+1).split(','),x=+a[0],y=+a[1],s=+a[2];
-    const m=what.match(/^\[(\w+)\]$/);
-    if(m){if(PROP[m[1]])g+=PROP[m[1]](x,y,s);continue}
+    const m=what.match(/^\[(\w+)(?:=(\w+))?\]$/);
+    if(m){if(PROP[m[1]])g+=PROP[m[1]](x,y,s,m[2]);continue}
     const flip=a.slice(3).includes('f')?` transform="translate(${2*x} 0) scale(-1 1)"`:'';
     g+=`<text x="${x}" y="${y}" font-size="${s}" text-anchor="middle" dominant-baseline="central"${flip}>${what}</text>`;
   }
@@ -1189,21 +1452,41 @@ const SPK='<svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.
 
 /* ================= 首页 ================= */
 const ZZ=[0,48,72,48,0,-48,-72,-48];
-const curGi=()=>UNITS.findIndex(u=>(S.done[u.key]||0)<u.nL);
+// 每个级别各自独立推进：级别内第一个没学完的单元就是“当前”，孩子可以直接选任意级别开始
+const levelCur=li=>{const u=LEVELS[li].units.find(u=>(S.done[u.key]||0)<u.nL);return u?u.gi:-1};
+const levelProg=lv=>[lv.units.reduce((a,u)=>a+Math.min(S.done[u.key]||0,u.nL),0),lv.units.reduce((a,u)=>a+u.nL,0)];
 function nodeState(u,k){
   const d=S.done[u.key]||0;
   if(k<d)return 'done';
-  return (u.gi===curGi()&&k===d)?'cur':'locked';
+  return (u.gi===levelCur(u.li)&&k===d)?'cur':'locked';
 }
+function curLevel(){
+  if(S.lv>=0&&S.lv<LEVELS.length)return S.lv;
+  const i=LEVELS.findIndex((l,li)=>levelCur(li)>=0);return i<0?0:i;
+}
+function renderTabs(){
+  const cl=curLevel();
+  $('#lvTabs').innerHTML=LEVELS.map((lv,li)=>{
+    const [dn,tot]=levelProg(lv);
+    return `<button class="lvtab${li===cl?' on':''}" style="--c:${lv.c};--cd:${lv.cd}" data-lv="${li}">${lv.name}<small>${dn>=tot?'✓':Math.round(dn/tot*100)+'%'}</small></button>`;
+  }).join('');
+  const bar=$('#lvTabs'),on=$('.lvtab.on');   // 只横向滚动标签栏，把选中的级别放到中间
+  if(on)bar.scrollLeft=Math.max(0,on.offsetLeft-(bar.clientWidth-on.offsetWidth)/2);
+}
+$('#lvTabs').addEventListener('click',e=>{
+  const b=e.target.closest('[data-lv]');if(!b)return;
+  S.lv=+b.dataset.lv;save();renderHome();window.scrollTo(0,0);
+});
 function renderHome(){
   const fire=$('#hFire');fire.querySelector('span').textContent=S.streak;
   const y=new Date();y.setDate(y.getDate()-1);
   fire.classList.toggle('off',S.last!==today()&&S.last!==today(y));
   $('#hXp').querySelector('span').textContent=S.xp;
-  let h='';
-  LEVELS.forEach(lv=>{
-    const tot=lv.units.reduce((a,u)=>a+u.nL,0),dn=lv.units.reduce((a,u)=>a+Math.min(S.done[u.key]||0,u.nL),0);
-    h+=`<section class="lvl" style="--c:${lv.c};--cd:${lv.cd}"><div class="lvh"><div><small>LEVEL ${lv.name}</small><b>${lv.title}</b></div><span>${dn} / ${tot}</span></div><div class="lvbar"><i style="width:${dn/tot*100}%"></i></div></section>`;
+  renderTabs();
+  const li=curLevel(),lv=LEVELS[li],[dn,tot]=levelProg(lv);
+  let h=`<section class="lvl" style="--c:${lv.c};--cd:${lv.cd}"><div class="lvh"><div><small>LEVEL ${lv.name}</small><b>${lv.title}</b></div><span>${dn} / ${tot}</span></div><div class="lvbar"><i style="width:${dn/tot*100}%"></i></div>
+    <div class="lvsub">${lv.units.length} 个单元 · ${lv.units.reduce((a,u)=>a+u.items.length,0)} 个词句</div></section>`;
+  {
     lv.units.forEach(u=>{
       h+=`<div class="ut"><span><span class="pic">${u.icon}</span> ${esc(u.name)}</span></div><div class="nodes">`;
       for(let k=0;k<u.nL;k++){
@@ -1213,14 +1496,15 @@ function renderHome(){
       }
       h+='</div>';
     });
-  });
-  if(curGi()<0)h+='<div class="allclear"><span class="pic">🏅</span>全部完成啦！可以点任意一课继续复习。</div>';
+  }
+  if(levelCur(li)<0)h+=`<div class="allclear"><span class="pic">🏅</span>LEVEL ${lv.name} 全部完成啦！可以点任意一课继续复习。${li+1<LEVELS.length?`<button class="btn" id="nextLv" style="margin-top:16px">去 LEVEL ${LEVELS[li+1].name} →</button>`:''}</div>`;
   $('#path').innerHTML=h;
   show('home');
   const cur=$('.node.cur');
   if(cur)setTimeout(()=>cur.scrollIntoView({block:'center'}),30);
 }
 $('#path').addEventListener('click',e=>{
+  if(e.target.closest('#nextLv')){S.lv=curLevel()+1;save();renderHome();window.scrollTo(0,0);return}
   const n=e.target.closest('.node');if(!n)return;
   if(n.classList.contains('locked')&&!S.set.all){
     n.classList.remove('shake');void n.offsetWidth;n.classList.add('shake');
@@ -1285,7 +1569,7 @@ function buildLesson(u,k){
       head.push({t:'recap',it:fresh[0],items:fresh});
       shuffle(fresh).forEach(it=>head.push(mkQ(firstQ(it),it)));
     }else fresh.forEach(it=>{head.push(mkQ('teach',it));head.push(mkQ(firstQ(it),it))});
-    fresh.forEach(it=>tail.push(mkQ(qType(it,true),it)));
+    shuffle(fresh).slice(0,4).forEach(it=>tail.push(mkQ(qType(it,true),it)));   // 新词再考一轮（最多 4 个，做错的会自动再出现）
     shuffle(u.chunks.slice(0,k).flat()).slice(0,2).forEach(it=>tail.push(mkQ(qType(it),it)));
     pickReview(2,u).forEach(it=>tail.push(mkQ(qType(it),it)));
   }else{
@@ -1308,7 +1592,7 @@ let LS=null;
 function startLesson(gi,k){
   actx();
   const u=UNITS[gi];
-  LS={u,k,q:buildLesson(u,k),i:0,ok:0,bad:0,combo:0,best:0,re:new Set(),sel:null,ans:false,cur:curGi()};
+  LS={u,k,q:buildLesson(u,k),i:0,ok:0,bad:0,combo:0,best:0,re:new Set(),sel:null,ans:false,lvOpen:levelCur(u.li)>=0};
   show('lesson');renderQ();
 }
 function setBar(){$('#lBar').style.width=(LS.i/LS.q.length*100)+'%'}
@@ -1444,14 +1728,14 @@ function finish(){
   const t=today(),y=new Date();y.setDate(y.getDate()-1);
   if(S.last!==t){S.streak=S.last===today(y)?S.streak+1:1;S.last=t}
   save();
-  const nc=curGi(),before=LS.cur>=0?UNITS[LS.cur].li:-1,after=nc>=0?UNITS[nc].li:LEVELS.length;
-  const lvup=after>before&&before>=0;
+  const li=LS.u.li,lvup=LS.lvOpen&&levelCur(li)<0,after=li+1;   // 这一课学完了整个级别
+  if(lvup&&after<LEVELS.length){S.lv=after;save()}
   const stars=acc>=90?3:acc>=70?2:1;
   $('#lBar').style.width='100%';
   sfx('win');speak(lvup?'Level up! You are amazing!':'Great job!');
   $('#fBody').innerHTML=`<div class="hero">${lvup?'🏆':'🌙'}</div>
-    <h1>${lvup?'升级啦！':'课程完成！'}</h1>
-    ${lvup?`<div class="lvup">${after<LEVELS.length?'解锁 LEVEL '+LEVELS[after].name+' · '+LEVELS[after].title:'所有级别都完成了！'}</div>`:''}
+    <h1>${lvup?'级别完成！':'课程完成！'}</h1>
+    ${lvup?`<div class="lvup">${'LEVEL '+LEVELS[li].name+' 全部完成！'+(after<LEVELS.length?' 下一站：LEVEL '+LEVELS[after].name+' · '+LEVELS[after].title:'')}</div>`:''}
     <div class="stars">${[0,1,2].map(i=>`<span class="${i<stars?'':'off'}">⭐</span>`).join('')}</div>
     <div class="tiles">
       <div class="tile" style="--tc:#ffc800"><b>获得经验</b><span>⭐ +${xp}</span></div>
@@ -1489,8 +1773,7 @@ function openSettings(){
     <div class="row"><div>先学后考<small>开：先连着学完新词再集中考；关：学一个考一个</small></div><button class="sw${S.set.group?' on':''}" data-k="group"></button></div>
     <div class="row"><div>音效</div><button class="sw${S.set.sfx?' on':''}" data-k="sfx"></button></div>
     <div class="row"><div>家长模式：解锁全部<small>可以点任意一课</small></div><button class="sw${S.set.all?' on':''}" data-k="all"></button></div>
-    <div class="row"><div>从某个级别开始<small>前面的级别会标记为已完成</small></div><select id="sJump">${LEVELS.map((l,i)=>`<option value="${i}">LEVEL ${l.name}</option>`).join('')}</select></div>
-    <div class="btns"><button class="btn ghost" id="sTest">🔊 试听</button><button class="btn ghost" id="sJumpGo">跳到该级别</button></div>
+    <div class="btns"><button class="btn ghost" id="sTest">🔊 试听</button></div>
     <div class="btns"><button class="btn red" id="sReset">重置所有进度</button><button class="btn" data-close>完成</button></div>
     <div class="ver">Moon英语 v${VERSION} · 进度保存在这台设备的浏览器里</div>`);
   $('#sEngine').value=S.set.engine;
@@ -1500,11 +1783,6 @@ function openSettings(){
   $('#sRate').onchange=()=>speak('I like apples.');
   document.querySelectorAll('.sw').forEach(b=>b.onclick=()=>{const k=b.dataset.k;S.set[k]=!S.set[k];b.classList.toggle('on',S.set[k]);save();if(k==='all')renderHome()});
   $('#sTest').onclick=()=>{actx();speak('Hello! I see a cat. Amazing!')};
-  $('#sJumpGo').onclick=()=>{
-    const li=+$('#sJump').value;
-    UNITS.forEach(u=>{if(u.li<li)S.done[u.key]=u.nL});
-    save();closeModal();renderHome();toast('已跳到 LEVEL '+LEVELS[li].name);
-  };
   let armed=false;
   $('#sReset').onclick=e=>{
     if(!armed){armed=true;e.target.textContent='再点一次确认';return}
