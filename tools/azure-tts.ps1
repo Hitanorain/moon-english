@@ -1,6 +1,6 @@
 ﻿# Azure text-to-speech helper. The key is read from a local file that is never committed:
 #   line 1 = key, line 2 = region (e.g. eastasia)
-param([string]$KeyFile = "$env:USERPROFILE\azure-key.txt")
+param([string]$KeyFile = "$env:USERPROFILE\.secrets\azure-key.txt")
 
 $lines = Get-Content $KeyFile | Where-Object { $_.Trim() -ne '' }
 $script:TtsKey = $lines[0].Trim()

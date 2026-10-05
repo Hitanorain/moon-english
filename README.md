@@ -18,4 +18,4 @@ powershell -ExecutionPolicy Bypass -File tools\make-audio.ps1
 ```
 
 脚本会读取 `index.html` 里所有要朗读的文本，只生成新增的录音，删掉不再需要的，并更新 `audio/manifest.js`。
-Azure 密钥放在 `%USERPROFILE%\azure-key.txt`（第一行密钥，第二行区域），不要放进这个仓库。
+Azure 密钥放在 `%USERPROFILE%\.secrets\azure-key.txt`（第一行密钥，第二行区域），不要放进这个仓库。
