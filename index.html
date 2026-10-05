@@ -41,6 +41,11 @@ button{font:inherit;color:inherit;cursor:pointer;-webkit-appearance:none;appeara
 .icon-btn .mute{display:none}
 .icon-btn.off .mute{display:inline}
 .icon-btn.off svg{stroke:#d0d0d0}
+/* B 级以后：中文翻译默认隐藏，点 中 按钮显示 */
+#lesson.en .zh-t{display:none}
+#lesson.en.showzh .zh-t{display:inline}
+.zhbtn{font-family:inherit;font-weight:900;font-size:20px;color:#fff}
+.zhbtn.on{background:#ff9600;box-shadow:0 5px 0 #cc7800}
 b.kw{color:#e53935;display:inline!important;font-size:inherit!important;font-weight:800}   /* 关键词嵌在别的文字里，不受 .fb b 这类标题样式影响 */
 .qzh{display:block;font-size:15px;font-weight:600;color:var(--muted);margin-top:2px}
 .icon-btn svg{width:28px;height:28px;stroke:var(--faint);fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
@@ -266,7 +271,7 @@ mark{background:#fff3b0;color:inherit;border-radius:6px;padding:0 4px}
 
 <script>
 'use strict';
-const VERSION='3.0.1';
+const VERSION='3.1';
 const KEY='moon-english-v1';
 
 /* ================= 课程内容 =================
@@ -2139,7 +2144,30 @@ function startLesson(gi,k){
   show('lesson');renderQ();
 }
 function setBar(){$('#lBar').style.width=(LS.i/LS.q.length*100)+'%'}
-const SAY=`<button class="spk" data-say aria-label="再听一遍">${SPK}</button><button class="spk slow" data-slow aria-label="慢速">🐢</button>`;
+/* 课程里的系统提示：AA 和 A 级用中文；B 级以后全部换成英文，中文翻译默认藏起来，点“中”按钮才显示 */
+const TXT={
+  check:['检查','CHECK'],cont:['继续','CONTINUE'],learned:['学完啦 ✓','DONE ✓'],
+  word:['新单词','New word'],phrase:['新短语','New phrase'],sent:['新句子','New sentence'],learn:['学一学','Learn'],
+  recap:['👀 认一认：点卡片再听一遍','👀 Review: tap a card to hear it again'],
+  listen:['听一听，选出正确的图片','Listen and choose the picture.'],
+  read:['这张图说的是哪一句？','Which one matches the picture?'],
+  hear:['听一听，选出你听到的句子','Listen and choose what you hear.'],
+  fill:['听一听，选出空格里的词','Listen and fill in the blank.'],
+  order:['听一听，把单词排成句子','Listen and put the words in order.'],
+  quiz:['🧩 小测验','🧩 Quiz'],listening:['🎧 仔细听…','🎧 Listen…'],
+  answer:['正确答案：','Correct answer:'],inrow:[n=>` · 🔥 连对 ${n} 题`,n=>` · 🔥 ${n} in a row`],greenPic:['绿色框里的图','the green picture'],
+  quitQ:['要退出这节课吗？','Quit this lesson?'],quitP:['退出后这节课的进度不会保存哦。','Your progress in this lesson will not be saved.'],
+  keep:['继续学习','KEEP LEARNING'],quit:['退出','QUIT'],
+  mods:[['学一学','听一听','看一看','小测验'],['Learn','Listen','Look','Quiz']],
+  fin:[['学完啦！','听力练习完成！','看图练习完成！','小测验完成！'],['Lesson complete!','Listening done!','Picture practice done!','Quiz complete!']],
+  perfect:['全部答对！','Perfect score!'],lvDone:['级别完成！','Level complete!'],
+  xp:['获得经验','XP'],acc:['正确率','Accuracy'],best:['最多连对','Best streak'],known:['认识了',"Learned"],
+  lvAll:[(a,b)=>`LEVEL ${a} 全部完成！`+(b?` 下一站：LEVEL ${b}`:''),(a,b)=>`Level ${a} complete!`+(b?` Next: Level ${b}`:'')]
+};
+const isEn=()=>!!LS&&LS.u.li>=2;
+const T=k=>TXT[k][isEn()?1:0];
+const ZH=s=>`<span class="zh-t">${esc(s)}</span>`;   // 中文翻译：B 级以后默认隐藏
+const SAY=()=>`<button class="spk" data-say aria-label="Listen again">${SPK}</button><button class="spk slow" data-slow aria-label="Slow">🐢</button>${isEn()?'<button class="spk slow zhbtn" data-zh aria-label="Show Chinese">中</button>':''}`;
 // 关键词标红（*big* 标记的词），选词填空的答案用黄底
 function textHTML(it){
   if(it.blank)return esc(it.blank.pre)+'<mark>'+esc(it.blank.answer)+'</mark>'+esc(it.blank.post);
@@ -2148,44 +2176,45 @@ function textHTML(it){
 }
 function renderQ(){
   const q=LS.q[LS.i],it=q.it;LS.sel=null;LS.ans=false;
+  const ls=$('#lesson');ls.classList.toggle('en',isEn());ls.classList.remove('showzh');
   setBar();
   $('#lCombo').textContent=LS.combo>=2?'🔥 '+LS.combo:'';
   $('#lFoot').className='foot';$('#lFb').innerHTML='';
   const main=$('#lMain');
-  main.textContent='检查';main.disabled=true;
+  main.textContent=T('check');main.disabled=true;
   let h='';
   if(q.t==='teach'){
-    const kind=isSent(it)?'新句子':it.text.includes(' ')?'新短语':'新单词';
-    h=`<span class="badge">✨ ${kind} NEW${q.of?` · 学一学 ${q.n}/${q.of}`:''}</span>
+    const kind=T(isSent(it)?'sent':it.text.includes(' ')?'phrase':'word');
+    h=`<span class="badge">✨ ${kind}${q.of?` · ${T('learn')} ${q.n}/${q.of}`:''}</span>
       <div class="teach">${hasPic(it)?`<div class="card">${picHTML(it.pic,34,150)}</div>`:''}
-      <div class="ttext"><button class="spk" data-say>${SPK}</button><span>${textHTML(it)}</span><button class="spk slow" data-slow>🐢</button></div>
-      <div class="zh">${esc(it.zh)}</div></div>`;
-    main.textContent='继续';main.disabled=false;
+      <div class="ttext">${SAY()}<span>${textHTML(it)}</span></div>
+      <div class="zh">${ZH(it.zh)}</div></div>`;
+    main.textContent=T('cont');main.disabled=false;
     record(it,null);
   }else if(q.t==='recap'){
-    h=`<span class="badge">👀 认一认：点卡片再听一遍</span>
-      <div class="rgrid">${q.items.map((o,i)=>`<button class="rcard" data-r="${i}">${hasPic(o)?picHTML(o.pic,16,80):''}<b>${textHTML(o)}</b><small>${esc(o.zh)}</small></button>`).join('')}</div>`;
-    main.textContent='学完啦 ✓';main.disabled=false;
+    h=`<span class="badge">${T('recap')}</span>${isEn()?`<div class="say">${SAY()}</div>`:''}
+      <div class="rgrid">${q.items.map((o,i)=>`<button class="rcard" data-r="${i}">${hasPic(o)?picHTML(o.pic,16,80):''}<b>${textHTML(o)}</b><small>${ZH(o.zh)}</small></button>`).join('')}</div>`;
+    main.textContent=T('learned');main.disabled=false;
   }else if(q.t==='listen'){
-    h=`<h2>听一听，选出正确的图片</h2>
-      <div class="say">${SAY}<div class="sent${S.set.text?'':' hide'}" data-say>${S.set.text?textHTML(it):'🎧 仔细听…'}</div></div>
+    h=`<h2>${T('listen')}</h2>
+      <div class="say">${SAY()}<div class="sent${S.set.text?'':' hide'}" data-say>${S.set.text?textHTML(it):T('listening')}</div></div>
       <div class="grid">${q.opts.map((o,i)=>`<button class="opt" data-i="${i}"><span class="n">${i+1}</span>${picHTML(o.pic,24,130)}</button>`).join('')}</div>`;
   }else if(q.t==='read'||q.t==='hear'){
-    h=(q.t==='read'?`<h2>这张图说的是哪一句？</h2><div class="bigpic">${picHTML(it.pic,26,120)}</div>`
-                   :`<h2>听一听，选出你听到的句子</h2><div class="say">${SAY}</div>`)+
+    h=(q.t==='read'?`<h2>${T('read')}</h2><div class="bigpic">${picHTML(it.pic,26,120)}</div>`
+                   :`<h2>${T('hear')}</h2><div class="say">${SAY()}</div>`)+
       `<div class="tlist">${q.opts.map((o,i)=>`<button class="topt" data-i="${i}"><span class="n">${i+1}</span>${textHTML(o)}</button>`).join('')}</div>`;
   }else if(q.t==='qpic'||q.t==='qtext'){
-    h=`<span class="badge">🧩 小测验</span>
-      <div class="say">${SAY}<div class="sent" data-say>${esc(it.text)}<small class="qzh">${esc(it.zh)}</small></div></div>`+
+    h=`<span class="badge">${T('quiz')}</span>
+      <div class="say">${SAY()}<div class="sent" data-say>${esc(it.text)}<small class="qzh">${ZH(it.zh)}</small></div></div>`+
       (q.t==='qpic'?`<div class="grid">${q.opts.map((o,i)=>`<button class="opt" data-i="${i}"><span class="n">${i+1}</span>${picHTML(o.pic,24,130)}</button>`).join('')}</div>`
         :`<div class="tlist">${q.opts.map((o,i)=>`<button class="topt" data-i="${i}"><span class="n">${i+1}</span>${esc(o.text)}</button>`).join('')}</div>`);
   }else if(q.t==='fill'){
-    h=`<h2>听一听，选出空格里的词</h2>
-      <div class="say">${SAY}</div>${hasPic(it)?`<div class="bigpic">${picHTML(it.pic,26,120)}</div>`:''}
+    h=`<h2>${T('fill')}</h2>
+      <div class="say">${SAY()}</div>${hasPic(it)?`<div class="bigpic">${picHTML(it.pic,26,120)}</div>`:''}
       <div class="fsent">${esc(it.blank.pre)}<span class="blank" id="fBlank">&nbsp;</span>${esc(it.blank.post)}</div>
       <div class="chips">${q.opts.map((w,i)=>`<button class="chip-w" data-i="${i}">${esc(w)}</button>`).join('')}</div>`;
   }else{
-    h=`<h2>听一听，把单词排成句子</h2><div class="say">${SAY}</div><div class="ans" id="oAns"></div><div class="bank" id="oBank"></div>`;
+    h=`<h2>${T('order')}</h2><div class="say">${SAY()}</div><div class="ans" id="oAns"></div><div class="bank" id="oBank"></div>`;
   }
   $('#lBody').innerHTML=h;
   if(q.t==='order')renderOrder();
@@ -2234,7 +2263,7 @@ function check(){
   });
   // 反馈里显示的内容：小测验显示“问题 → 答案”，其余显示这个词句
   const ao=quiz?q.opts[q.ans]:null,aText=quiz?(ao.text||''):it.text;
-  const shown=quiz?`${esc(it.text)} → ${ao.text?textHTML(ao):(ao.pic[0]==='#'?'绿色框里的图':ao.pic)}`:`${textHTML(it)} <span>${esc(it.zh)}</span>`;
+  const shown=quiz?`${esc(it.text)} → ${ao.text?textHTML(ao):(ao.pic[0]==='#'?T('greenPic'):ao.pic)}`:`${textHTML(it)} <span>${ZH(it.zh)}</span>`;
   if(q.t==='fill'){const b=$('#fBlank');b.textContent=it.blank.answer;b.classList.add(right?'ok':'no')}
   LS.i++;setBar();LS.i--;
   const foot=$('#lFoot'),fb=$('#lFb'),main=$('#lMain');
@@ -2242,18 +2271,18 @@ function check(){
     LS.ok++;LS.combo++;LS.best=Math.max(LS.best,LS.combo);
     const word=pickPraise();sfx('ok');pop(word);praise(word);
     foot.className='foot ok';
-    fb.innerHTML=`<div class="face">🌙</div><div><b>${word} 🎉</b><p>${shown}${LS.combo>=3?' · 🔥 连对 '+LS.combo+' 题':''}</p></div>`;
+    fb.innerHTML=`<div class="face">🌙</div><div><b>${word} 🎉</b><p>${shown}${LS.combo>=3?T('inrow')(LS.combo):''}</p></div>`;
   }else{
     LS.bad++;LS.combo=0;
     sfx('bad');stopSpeak();
     setTimeout(()=>{if(LS&&LS.ans&&LS.q[LS.i]===q)speak(aText||it.text)},750);   // 先让错误提示音响完，再读正确答案
     foot.className='foot bad';
-    fb.innerHTML=`<div class="face">🤔</div><div><b>正确答案：</b><p>${shown}</p></div>`;
+    fb.innerHTML=`<div class="face">🤔</div><div><b>${T('answer')}</b><p>${shown}</p></div>`;
     const rid=it.id||'quiz:'+it.text;   // 做错的题放到最后再考一次
     if(!LS.re.has(rid)){LS.re.add(rid);LS.q.push(quiz?mkQuiz(LS.u,q.z):mkQ(q.t,it))}
   }
   $('#lCombo').textContent=LS.combo>=2?'🔥 '+LS.combo:'';
-  main.textContent='继续';main.disabled=false;
+  main.textContent=T('cont');main.disabled=false;
 }
 function next(){LS.i++;if(LS.i>=LS.q.length)finish();else renderQ()}
 $('#lMain').addEventListener('click',()=>{
@@ -2271,6 +2300,7 @@ $('#lBody').addEventListener('click',e=>{
     else q.placed.splice(+a.dataset.a,1);
     renderOrder();return;
   }
+  if(e.target.closest('[data-zh]')){const on=$('#lesson').classList.toggle('showzh');document.querySelectorAll('[data-zh]').forEach(b=>b.classList.toggle('on',on));return}   // 显示/隐藏中文翻译
   if(e.target.closest('[data-slow]')){speak(it.text,true);return}
   if(e.target.closest('[data-say]')){
     if(q.t==='read'&&!LS.ans)return;
@@ -2278,8 +2308,8 @@ $('#lBody').addEventListener('click',e=>{
   }
 });
 $('#lQuit').addEventListener('click',()=>{
-  modal(`<h3>要退出这节课吗？</h3><p>退出后这节课的进度不会保存哦。</p>
-    <div class="btns"><button class="btn ghost" data-close>继续学习</button><button class="btn red" id="mQuit">退出</button></div>`);
+  modal(`<h3>${T('quitQ')}</h3><p>${T('quitP')}</p>
+    <div class="btns"><button class="btn ghost" data-close>${T('keep')}</button><button class="btn red" id="mQuit">${T('quit')}</button></div>`);
   $('#mQuit').onclick=()=>{closeModal();stopSpeak();LS=null;renderHome()};
 });
 function finish(){
@@ -2296,17 +2326,17 @@ function finish(){
   // 每节学完都鼓掌；全部做对（一次都没错）就换成欢呼
   sfx(perfect||lvup?'cheer':'clap');
   praise(lvup?'Level up! You are amazing!':perfect?'Perfect! You are amazing!':n?'Great job!':'Well done!');
-  const title=lvup?'级别完成！':perfect?'全部答对！':['学完啦！','听力练习完成！','看图练习完成！','小测验完成！'][mod];
+  const title=lvup?T('lvDone'):perfect?T('perfect'):T('fin')[mod];
   $('#fBody').innerHTML=`<div class="hero">${lvup||perfect?'🏆':'🌙'}</div>
     <h1>${title}</h1>
-    <div class="lvup">${esc(LS.u.name)} · ${MODS[mod][0]}</div>
-    ${lvup?`<div class="lvup">${'LEVEL '+LEVELS[li].name+' 全部完成！'+(after<LEVELS.length?' 下一站：LEVEL '+LEVELS[after].name+' · '+LEVELS[after].title:'')}</div>`:''}
+    <div class="lvup">${esc(isEn()?LS.u.name.replace(/[\u3000-\u9fff·]+/g,' ').trim():LS.u.name)} · ${T('mods')[mod]}</div>
+    ${lvup?`<div class="lvup">${T('lvAll')(LEVELS[li].name,after<LEVELS.length?LEVELS[after].name:'')}</div>`:''}
     <div class="stars">${[0,1,2].map(i=>`<span class="${i<stars?'':'off'}">⭐</span>`).join('')}</div>
     <div class="tiles">
-      <div class="tile" style="--tc:#ffc800"><b>获得经验</b><span>⭐ +${xp}</span></div>
-      ${n?`<div class="tile" style="--tc:#58cc02"><b>正确率</b><span>🎯 ${acc}%</span></div>
-      <div class="tile" style="--tc:#ff9600"><b>最多连对</b><span>🔥 ${LS.best}</span></div>`
-      :`<div class="tile" style="--tc:#58cc02"><b>认识了</b><span>📖 ${LS.u.items.length} 个</span></div>`}
+      <div class="tile" style="--tc:#ffc800"><b>${T('xp')}</b><span>⭐ +${xp}</span></div>
+      ${n?`<div class="tile" style="--tc:#58cc02"><b>${T('acc')}</b><span>🎯 ${acc}%</span></div>
+      <div class="tile" style="--tc:#ff9600"><b>${T('best')}</b><span>🔥 ${LS.best}</span></div>`
+      :`<div class="tile" style="--tc:#58cc02"><b>${T('known')}</b><span>📖 ${LS.u.items.length}</span></div>`}
     </div>`;
   LS=null;show('finish');
 }
