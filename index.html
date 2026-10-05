@@ -251,8 +251,8 @@ mark{background:#fff3b0;color:inherit;border-radius:6px;padding:0 4px}
 
 <script>
 'use strict';
-const VERSION='1.3.1';
-const KEY='panda-english-v1';   // 存档键沿用旧名，改了会丢失已有进度
+const VERSION='1.4';
+const KEY='moon-english-v1';
 
 /* ================= 课程内容 =================
    每行：英文 | 图片(emoji) | 中文
@@ -326,7 +326,151 @@ boy|👦|男孩
 girl|👧|女孩
 grandma|👵|奶奶
 grandpa|👴|爷爷
-family|👨‍👩‍👧‍👦|一家人`)
+family|👨‍👩‍👧‍👦|一家人`),
+U('水果 Fruits','🍓',`
+strawberry|🍓|草莓
+watermelon|🍉|西瓜
+pear|🍐|梨
+peach|🍑|桃子
+cherries|🍒|樱桃
+lemon|🍋|柠檬
+pineapple|🍍|菠萝
+mango|🥭|芒果
+kiwi|🥝|猕猴桃
+coconut|🥥|椰子`),
+U('玩具 Toys','🧸',`
+teddy bear|🧸|泰迪熊
+kite|🪁|风筝
+balloon|🎈|气球
+robot|🤖|机器人
+drum|🥁|鼓
+puzzle|🧩|拼图
+yo-yo|🪀|悠悠球
+doll|🪆|娃娃`),
+U('衣服 Clothes','👕',`
+shirt|👕|衬衫
+pants|👖|裤子
+dress|👗|裙子
+socks|🧦|袜子
+coat|🧥|外套
+boots|👢|靴子
+gloves|🧤|手套
+scarf|🧣|围巾
+cap|🧢|棒球帽
+glasses|👓|眼镜`),
+U('农场 Farm','🐔',`
+horse|🐴|马
+sheep|🐑|绵羊
+goat|🐐|山羊
+chicken|🐔|鸡
+chick|🐤|小鸡
+rooster|🐓|公鸡
+turkey|🦃|火鸡
+mouse|🐭|老鼠
+llama|🦙|羊驼`),
+U('交通工具 Vehicles','🚗',`
+car|🚗|汽车
+bus|🚌|公交车
+train|🚆|火车
+plane|✈️|飞机
+boat|⛵|船
+bike|🚲|自行车
+truck|🚚|卡车
+taxi|🚕|出租车
+helicopter|🚁|直升机
+rocket|🚀|火箭`),
+U('形状 Shapes','🔺',`
+circle|#none [circle]@50,50,64|圆形
+square|#none [square]@50,50,64|正方形
+triangle|#none [triangle]@50,52,70|三角形
+rectangle|#none [rectangle]@50,50,78|长方形
+oval|#none [oval]@50,50,74|椭圆形
+star|#none [star]@50,52,74|星形
+heart|#none [heart]@50,52,72|心形
+diamond|#none [diamond]@50,50,66|菱形`),
+U('动物园 Zoo','🦁',`
+lion|🦁|狮子
+tiger|🐯|老虎
+elephant|🐘|大象
+monkey|🐵|猴子
+giraffe|🦒|长颈鹿
+zebra|🦓|斑马
+panda|🐼|熊猫
+hippo|🦛|河马
+kangaroo|🦘|袋鼠
+snake|🐍|蛇`),
+U('蔬菜 Vegetables','🥕',`
+carrot|🥕|胡萝卜
+corn|🌽|玉米
+potato|🥔|土豆
+tomato|🍅|西红柿
+broccoli|🥦|西兰花
+onion|🧅|洋葱
+mushroom|🍄|蘑菇
+cucumber|🥒|黄瓜
+lettuce|🥬|生菜
+garlic|🧄|大蒜`),
+U('零食 Snacks','🍕',`
+pizza|🍕|披萨
+cookie|🍪|饼干
+candy|🍬|糖果
+cheese|🧀|奶酪
+hamburger|🍔|汉堡
+hot dog|🌭|热狗
+sandwich|🥪|三明治
+donut|🍩|甜甜圈
+popcorn|🍿|爆米花
+juice|🧃|果汁`),
+U('家里 House','🏠',`
+house|🏠|房子
+window|🪟|窗户
+sofa|🛋️|沙发
+light|💡|灯
+bathtub|🛁|浴缸
+toilet|🚽|马桶
+TV|📺|电视
+key|🔑|钥匙
+phone|📱|手机`),
+U('学校 School','🏫',`
+pencil|✏️|铅笔
+crayon|🖍️|蜡笔
+ruler|📏|尺子
+scissors|✂️|剪刀
+backpack|🎒|书包
+books|📚|书
+pen|🖊️|钢笔
+paper|📄|纸
+teacher|🧑‍🏫|老师
+school|🏫|学校`),
+U('小虫子 Bugs','🐞',`
+bee|🐝|蜜蜂
+ant|🐜|蚂蚁
+butterfly|🦋|蝴蝶
+ladybug|🐞|瓢虫
+snail|🐌|蜗牛
+spider|🕷️|蜘蛛
+caterpillar|🐛|毛毛虫
+worm|🪱|虫子`),
+U('海洋 Sea','🐳',`
+whale|🐳|鲸鱼
+dolphin|🐬|海豚
+shark|🦈|鲨鱼
+octopus|🐙|章鱼
+crab|🦀|螃蟹
+turtle|🐢|乌龟
+shrimp|🦐|虾
+seal|🦭|海豹
+shell|🐚|贝壳
+penguin|🐧|企鹅`),
+U('心情 Feelings','😀',`
+happy|😀|开心
+sad|😢|难过
+angry|😠|生气
+scared|😱|害怕
+sleepy|😴|困
+silly|🤪|调皮
+surprised|😮|惊讶
+sick|🤒|生病`)
 ]},
 {id:'A',name:'A',title:'常用词和短语',c:'#1cb0f6',cd:'#1899d6',units:[
 U('身边的东西 Things','🎒',`
@@ -391,7 +535,91 @@ drink|🥤|喝
 sing|🎤|唱歌
 dance|💃|跳舞
 cry|😭|哭
-laugh|😂|笑`)
+laugh|😂|笑`),
+U('大和小 Big & Small','🐘',`
+a big dog|#sky 🐕@50,54,66|一只大狗
+a small dog|#sky 🐕@50,68,20|一只小狗
+a big ball|#sky ⚽@50,48,62|一个大球
+a small ball|#sky ⚽@50,66,18|一个小球
+a big fish|#water 🐟@50,50,66|一条大鱼
+a small fish|#water 🐟@50,50,18|一条小鱼
+a big tree|#sky 🌳@50,44,80|一棵大树
+a small tree|#sky 🌳@50,64,26|一棵小树`),
+U('我的身体 My body','👀',`
+my eyes|👀|我的眼睛
+my ears|👂|我的耳朵
+my nose|👃|我的鼻子
+my mouth|👄|我的嘴巴
+my hands|👐|我的双手
+my feet|🦶|我的脚
+my hair|💇|我的头发
+my teeth|🦷|我的牙齿`),
+U('我的家人 My family','👨‍👩‍👧',`
+my mom|👩|我的妈妈
+my dad|👨|我的爸爸
+my baby sister|👶|我的小妹妹
+my big brother|👦|我的哥哥
+my grandma|👵|我的奶奶
+my grandpa|👴|我的爷爷
+my friend|🧑‍🤝‍🧑|我的朋友
+my dog|🐕|我的狗`),
+U('什么颜色 2 Colors','🐷',`
+a pink pig|🐷|一头粉色的猪
+a yellow duck|🐥|一只黄色的鸭子
+a green frog|🐸|一只绿色的青蛙
+a brown bear|🐻|一只棕色的熊
+a white sheep|🐑|一只白色的羊
+a black cat|🐈‍⬛|一只黑色的猫
+a gray elephant|🐘|一头灰色的大象
+an orange fish|🐠|一条橙色的鱼
+purple grapes|🍇|紫色的葡萄
+a red crab|🦀|一只红色的螃蟹`),
+U('这是什么 It is a / an','🦉',`
+It is a fox.|🦊|它是一只狐狸。
+It is an owl.|🦉|它是一只猫头鹰。
+It is an egg.|🥚|它是一个鸡蛋。
+It is a bus.|🚌|它是一辆公交车。
+It is a cake.|🎂|它是一个蛋糕。
+It is a bee.|🐝|它是一只蜜蜂。
+It is an apple.|🍎|它是一个苹果。
+It is a hat.|🎩|它是一顶帽子。`),
+U('看那个 Look at','👀',`
+Look at the fish.|🐠|看那条鱼。
+Look at the frog.|🐸|看那只青蛙。
+Look at the rainbow.|🌈|看那道彩虹。
+Look at the kite.|🪁|看那只风筝。
+Look at the plane.|✈️|看那架飞机。
+Look at the flower.|🌻|看那朵花。
+Look at the snowman.|⛄|看那个雪人。
+Look at the stars.|✨|看那些星星。`),
+U('在哪里 Places','🏞️',`
+at the park|🏞️|在公园
+at the zoo|🦁🦓|在动物园
+at the beach|🏖️|在海滩
+at the farm|🚜|在农场
+at the store|🏪|在商店
+at school|🏫|在学校
+at the hospital|🏥|在医院
+at the library|📚|在图书馆
+at home|🏠|在家`),
+U('生日派对 Party','🎂',`
+a birthday cake|🎂|一个生日蛋糕
+a gift|🎁|一份礼物
+a balloon|🎈|一个气球
+a party hat|🥳|一顶派对帽
+candles|🕯️|蜡烛
+a card|💌|一张贺卡
+a cupcake|🧁|一个纸杯蛋糕
+music|🎵|音乐`),
+U('运动 Sports','⚽',`
+play soccer|⚽|踢足球
+play basketball|🏀|打篮球
+play baseball|⚾|打棒球
+play tennis|🎾|打网球
+play ping-pong|🏓|打乒乓球
+go skating|⛸️|去滑冰
+go skiing|⛷️|去滑雪
+go swimming|🏊‍♀️|去游泳`)
 ]},
 {id:'B',name:'B',title:'第一批句子',c:'#ce82ff',cd:'#a568cc',units:[
 U('我看见 I see','👀',`
@@ -827,12 +1055,22 @@ function glass(x,y,s,full){
   return (full?`<path d="M${r2(x-hw(.2))} ${r2(w)}L${r2(x-s*.225)} ${r2(b)}L${r2(x+s*.225)} ${r2(b)}L${r2(x+hw(.2))} ${r2(w)}z" fill="#6cc6f2"/>`:'')+
     `<path d="M${r2(x-s*.3)} ${r2(t)}L${r2(x-s*.225)} ${r2(b)}L${r2(x+s*.225)} ${r2(b)}L${r2(x+s*.3)} ${r2(t)}" fill="none" stroke="#9aa9b5" stroke-width="1.6" stroke-linejoin="round"/>`;
 }
+const shape=el=>`<g fill="#7fd0f7" stroke="#2a8fc4" stroke-width="2.4" stroke-linejoin="round">${el}</g>`;
 const PROP={
   table:(x,y,s)=>{const l=x-s/2;return `<rect x="${l}" y="${y}" width="${s}" height="${r2(s*.07)}" rx="1.2" fill="#b9773c"/><rect x="${r2(l+s*.08)}" y="${r2(y+s*.06)}" width="${r2(s*.06)}" height="${r2(s*.39)}" fill="#9a5f2c"/><rect x="${r2(l+s*.86)}" y="${r2(y+s*.06)}" width="${r2(s*.06)}" height="${r2(s*.39)}" fill="#9a5f2c"/>`},
   bed:(x,y,s)=>{const l=x-s/2;return `<rect x="${l}" y="${r2(y-s*.2)}" width="${r2(s*.06)}" height="${r2(s*.65)}" rx="1" fill="#8d5a3b"/><rect x="${r2(l+s*.94)}" y="${r2(y-s*.04)}" width="${r2(s*.06)}" height="${r2(s*.49)}" rx="1" fill="#8d5a3b"/><rect x="${r2(l+s*.06)}" y="${r2(y+s*.12)}" width="${r2(s*.88)}" height="${r2(s*.07)}" fill="#a86d47"/><rect x="${r2(l+s*.06)}" y="${y}" width="${r2(s*.88)}" height="${r2(s*.12)}" rx="2" fill="#fff" stroke="#d9d9d9" stroke-width=".6"/><rect x="${r2(l+s*.35)}" y="${r2(y-s*.01)}" width="${r2(s*.59)}" height="${r2(s*.13)}" rx="2" fill="#7cc4f5"/><ellipse cx="${r2(l+s*.18)}" cy="${r2(y-s*.02)}" rx="${r2(s*.09)}" ry="${r2(s*.045)}" fill="#fff" stroke="#d9d9d9" stroke-width=".6"/>`},
   // 打开的箱子：只画前脸和翻开的盖子，前面写的物体会显得“在箱子里”
   box:(x,y,s)=>{const l=x-s/2,r=x+s/2,h=s*.62;return `<path d="M${l} ${y}L${r2(l-s*.16)} ${r2(y-s*.2)}L${r2(l+s*.1)} ${r2(y-s*.24)}L${r2(l+s*.14)} ${y}z" fill="#d9a25f"/><path d="M${r} ${y}L${r2(r+s*.16)} ${r2(y-s*.2)}L${r2(r-s*.1)} ${r2(y-s*.24)}L${r2(r-s*.14)} ${y}z" fill="#d9a25f"/><rect x="${l}" y="${y}" width="${s}" height="${r2(h)}" rx="1.5" fill="#c98a4b"/><rect x="${l}" y="${y}" width="${s}" height="${r2(s*.06)}" fill="#a96f35"/><rect x="${r2(x-s*.08)}" y="${r2(y+s*.06)}" width="${r2(s*.16)}" height="${r2(h*.35)}" fill="#e8c48f"/>`},
   cbox:(x,y,s)=>{const l=x-s/2,h=s*.62,d=s*.14;return `<path d="M${l} ${y}L${r2(l+d)} ${r2(y-d)}L${r2(x+s/2+d)} ${r2(y-d)}L${x+s/2} ${y}z" fill="#e0ad6c"/><path d="M${x+s/2} ${y}L${r2(x+s/2+d)} ${r2(y-d)}L${r2(x+s/2+d)} ${r2(y+h-d)}L${x+s/2} ${r2(y+h)}z" fill="#a96f35"/><rect x="${l}" y="${y}" width="${s}" height="${r2(h)}" fill="#c98a4b"/><rect x="${r2(x-s*.08)}" y="${r2(y-d*.5)}" width="${r2(s*.16)}" height="${r2(h*.35+d*.5)}" fill="#e8c48f" opacity=".9"/>`},
+  // 形状统一用同一种蓝色，孩子只能靠形状来分辨，不会和颜色单词混在一起
+  circle:(x,y,s)=>shape(`<circle cx="${x}" cy="${y}" r="${s/2}"/>`),
+  square:(x,y,s)=>shape(`<rect x="${r2(x-s*.42)}" y="${r2(y-s*.42)}" width="${r2(s*.84)}" height="${r2(s*.84)}" rx="1.5"/>`),
+  rectangle:(x,y,s)=>shape(`<rect x="${x-s/2}" y="${r2(y-s*.3)}" width="${s}" height="${r2(s*.6)}" rx="1.5"/>`),
+  oval:(x,y,s)=>shape(`<ellipse cx="${x}" cy="${y}" rx="${s/2}" ry="${r2(s*.32)}"/>`),
+  triangle:(x,y,s)=>shape(`<path d="M${x} ${r2(y-s*.45)}L${r2(x+s/2)} ${r2(y+s*.4)}L${r2(x-s/2)} ${r2(y+s*.4)}z"/>`),
+  diamond:(x,y,s)=>shape(`<path d="M${x} ${y-s/2}L${r2(x+s*.38)} ${y}L${x} ${y+s/2}L${r2(x-s*.38)} ${y}z"/>`),
+  star:(x,y,s)=>shape(`<path d="${Array.from({length:10},(_,i)=>{const a=-Math.PI/2+i*Math.PI/5,r=i%2?s*.21:s*.5;return (i?'L':'M')+r2(x+r*Math.cos(a))+' '+r2(y+r*Math.sin(a))}).join('')}z"/>`),
+  heart:(x,y,s)=>shape(`<path d="M${x} ${r2(y+s*.38)}C${r2(x-s*.62)} ${r2(y-s*.02)} ${r2(x-s*.28)} ${r2(y-s*.48)} ${x} ${r2(y-s*.18)}C${r2(x+s*.28)} ${r2(y-s*.48)} ${r2(x+s*.62)} ${r2(y-s*.02)} ${x} ${r2(y+s*.38)}z"/>`),
   pond:(x,y,s)=>`<ellipse cx="${x}" cy="${y}" rx="${s/2}" ry="${r2(s*.15)}" fill="#5cc3f0" stroke="#3fa9db" stroke-width="1"/>`,
   pencil:(x,y,s)=>{const l=x-s/2,h=7,t=8,e=x+s/2;return `<rect x="${l}" y="${y-h/2}" width="5" height="${h}" rx="1.5" fill="#ff8fab"/><rect x="${l+5}" y="${y-h/2}" width="2" height="${h}" fill="#c0c0c0"/><rect x="${l+7}" y="${y-h/2}" width="${s-7-t}" height="${h}" fill="#ffcc33"/><rect x="${l+7}" y="${y-h/2}" width="${s-7-t}" height="${r2(h/3)}" fill="#ffdb66"/><path d="M${e-t} ${y-h/2}L${e} ${y}L${e-t} ${y+h/2}z" fill="#f1c27d"/><path d="M${r2(e-t*.35)} ${r2(y-h*.18)}L${e} ${y}L${r2(e-t*.35)} ${r2(y+h*.18)}z" fill="#444"/>`},
   glassfull:(x,y,s)=>glass(x,y,s,true),
