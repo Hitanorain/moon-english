@@ -5,10 +5,10 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="熊猫英语">
+<meta name="apple-mobile-web-app-title" content="Moon英语">
 <meta name="theme-color" content="#ffffff">
 <meta name="referrer" content="no-referrer">
-<title>熊猫英语 · 看图听音</title>
+<title>Moon英语 · 看图听音</title>
 <style>
 :root{
   color-scheme:light;
@@ -218,7 +218,7 @@ mark{background:#fff3b0;color:inherit;border-radius:6px;padding:0 4px}
 <!-- 首页：学习路径 -->
 <section class="screen on" id="home">
   <header class="top"><div class="top-in">
-    <div class="logo"><span class="pic">🐼</span>熊猫英语</div>
+    <div class="logo"><span class="pic">🌙</span>Moon英语</div>
     <div class="chip fire" id="hFire">🔥 <span>0</span></div>
     <div class="chip xp" id="hXp">⭐ <span>0</span></div>
     <button class="icon-btn" id="hSet" aria-label="设置"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
@@ -251,8 +251,8 @@ mark{background:#fff3b0;color:inherit;border-radius:6px;padding:0 4px}
 
 <script>
 'use strict';
-const VERSION='1.3';
-const KEY='panda-english-v1';
+const VERSION='1.3.1';
+const KEY='panda-english-v1';   // 存档键沿用旧名，改了会丢失已有进度
 
 /* ================= 课程内容 =================
    每行：英文 | 图片(emoji) | 中文
@@ -1160,7 +1160,7 @@ function check(){
     LS.ok++;LS.combo++;LS.best=Math.max(LS.best,LS.combo);
     sfx('ok');pop();speak('Amazing!');
     foot.className='foot ok';
-    fb.innerHTML=`<div class="face">🐼</div><div><b>Amazing! 🎉</b><p>${esc(it.text)} <span>${esc(it.zh)}</span>${LS.combo>=3?' · 🔥 连对 '+LS.combo+' 题':''}</p></div>`;
+    fb.innerHTML=`<div class="face">🌙</div><div><b>Amazing! 🎉</b><p>${esc(it.text)} <span>${esc(it.zh)}</span>${LS.combo>=3?' · 🔥 连对 '+LS.combo+' 题':''}</p></div>`;
   }else{
     LS.bad++;LS.combo=0;
     sfx('bad');stopSpeak();
@@ -1211,7 +1211,7 @@ function finish(){
   const stars=acc>=90?3:acc>=70?2:1;
   $('#lBar').style.width='100%';
   sfx('win');speak(lvup?'Level up! You are amazing!':'Great job!');
-  $('#fBody').innerHTML=`<div class="hero">${lvup?'🏆':'🐼'}</div>
+  $('#fBody').innerHTML=`<div class="hero">${lvup?'🏆':'🌙'}</div>
     <h1>${lvup?'升级啦！':'课程完成！'}</h1>
     ${lvup?`<div class="lvup">${after<LEVELS.length?'解锁 LEVEL '+LEVELS[after].name+' · '+LEVELS[after].title:'所有级别都完成了！'}</div>`:''}
     <div class="stars">${[0,1,2].map(i=>`<span class="${i<stars?'':'off'}">⭐</span>`).join('')}</div>
@@ -1254,7 +1254,7 @@ function openSettings(){
     <div class="row"><div>从某个级别开始<small>前面的级别会标记为已完成</small></div><select id="sJump">${LEVELS.map((l,i)=>`<option value="${i}">LEVEL ${l.name}</option>`).join('')}</select></div>
     <div class="btns"><button class="btn ghost" id="sTest">🔊 试听</button><button class="btn ghost" id="sJumpGo">跳到该级别</button></div>
     <div class="btns"><button class="btn red" id="sReset">重置所有进度</button><button class="btn" data-close>完成</button></div>
-    <div class="ver">熊猫英语 v${VERSION} · 进度保存在这台设备的浏览器里</div>`);
+    <div class="ver">Moon英语 v${VERSION} · 进度保存在这台设备的浏览器里</div>`);
   $('#sEngine').value=S.set.engine;
   $('#sEngine').onchange=e=>{S.set.engine=e.target.value;deviceBad=false;save();speak('Hello! Let\'s learn English.')};
   $('#sVoice').onchange=e=>{S.set.voice=e.target.value;save();loadVoices();speak('Hello! Let\'s learn English.')};
