@@ -41,7 +41,7 @@ button{font:inherit;color:inherit;cursor:pointer;-webkit-appearance:none;appeara
 .icon-btn .mute{display:none}
 .icon-btn.off .mute{display:inline}
 .icon-btn.off svg{stroke:#d0d0d0}
-.kw{color:#e53935}
+b.kw{color:#e53935;display:inline!important;font-size:inherit!important;font-weight:800}   /* 关键词嵌在别的文字里，不受 .fb b 这类标题样式影响 */
 .qzh{display:block;font-size:15px;font-weight:600;color:var(--muted);margin-top:2px}
 .icon-btn svg{width:28px;height:28px;stroke:var(--faint);fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
 .path{width:100%;max-width:560px;margin:0 auto;padding:8px 16px 140px}
@@ -190,10 +190,10 @@ mark{background:#fff3b0;color:inherit;border-radius:6px;padding:0 4px}
 @keyframes fly{from{transform:translate(-50%,-50%) scale(.4);opacity:1}to{transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(1) rotate(var(--r));opacity:0}}
 
 /* 完成页 */
-.done{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px 16px}
-.done .hero{font-size:110px;font-family:var(--emoji);animation:hop 1s infinite}
-.done h1{font-size:30px;margin:8px 0 4px;color:#ffc800;font-weight:900}
-.done .lvup{font-size:18px;font-weight:800;color:var(--blue);margin:4px 0}
+.result{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px 16px}
+.result .hero{font-size:110px;font-family:var(--emoji);animation:hop 1s infinite}
+.result h1{font-size:30px;margin:8px 0 4px;color:#ffc800;font-weight:900}
+.result .lvup{font-size:18px;font-weight:800;color:var(--blue);margin:4px 0}
 .stars{font-size:46px;letter-spacing:6px;margin:6px 0 18px;font-family:var(--emoji)}
 .stars .off{filter:grayscale(1);opacity:.3}
 .tiles{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
@@ -257,7 +257,7 @@ mark{background:#fff3b0;color:inherit;border-radius:6px;padding:0 4px}
 
 <!-- 完成 -->
 <section class="screen" id="finish">
-  <div class="done" id="fBody"></div>
+  <div class="result" id="fBody"></div>
   <div class="foot"><div class="fin"><button class="btn" id="fNext">继续</button></div></div>
 </section>
 
@@ -266,7 +266,7 @@ mark{background:#fff3b0;color:inherit;border-radius:6px;padding:0 4px}
 
 <script>
 'use strict';
-const VERSION='3.0';
+const VERSION='3.0.1';
 const KEY='moon-english-v1';
 
 /* ================= 课程内容 =================
@@ -2207,8 +2207,12 @@ function select(i){
   if(q.t==='fill')$('#fBlank').textContent=q.opts[i];
   $('#lMain').disabled=false;
 }
-function pop(){
-  const p=document.createElement('div');p.className='pop';p.textContent='Amazing!';document.body.appendChild(p);
+// 答对时的夸奖：每次随机换一个，不和上一次重复
+const PRAISE=['Amazing!','Perfect!','Excellent!','Great job!','Awesome!','Fantastic!','Super!','Well done!','Wonderful!','Brilliant!'];
+let lastPraise='';
+function pickPraise(){let p;do{p=PRAISE[Math.random()*PRAISE.length|0]}while(p===lastPraise);return lastPraise=p}
+function pop(word){
+  const p=document.createElement('div');p.className='pop';p.textContent=word;document.body.appendChild(p);
   const em=['⭐','🎉','✨','🌟','💖','🎈'];
   for(let i=0;i<14;i++){
     const c=document.createElement('div');c.className='conf';c.textContent=em[i%em.length];
@@ -2236,9 +2240,9 @@ function check(){
   const foot=$('#lFoot'),fb=$('#lFb'),main=$('#lMain');
   if(right){
     LS.ok++;LS.combo++;LS.best=Math.max(LS.best,LS.combo);
-    sfx('ok');pop();praise('Amazing!');
+    const word=pickPraise();sfx('ok');pop(word);praise(word);
     foot.className='foot ok';
-    fb.innerHTML=`<div class="face">🌙</div><div><b>Amazing! 🎉</b><p>${shown}${LS.combo>=3?' · 🔥 连对 '+LS.combo+' 题':''}</p></div>`;
+    fb.innerHTML=`<div class="face">🌙</div><div><b>${word} 🎉</b><p>${shown}${LS.combo>=3?' · 🔥 连对 '+LS.combo+' 题':''}</p></div>`;
   }else{
     LS.bad++;LS.combo=0;
     sfx('bad');stopSpeak();
