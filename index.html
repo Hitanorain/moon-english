@@ -269,9 +269,10 @@ mark{background:#fff3b0;color:inherit;border-radius:6px;padding:0 4px}
 <div class="modal" id="modal"></div>
 <div class="toast" id="toast"></div>
 
+<script src="audio/manifest.js"></script>
 <script>
 'use strict';
-const VERSION='3.1';
+const VERSION='3.2';
 const KEY='moon-english-v1';
 
 /* ================= 课程内容 =================
@@ -1874,27 +1875,49 @@ function loadVoices(){
   if(!voice)voice=VOICES.find(v=>/en[-_]US/i.test(v.lang))||VOICES[0]||null;
 }
 if(synth){loadVoices();synth.onvoiceschanged=loadVoices}
-/* 在线朗读（百度翻译 TTS）：很多国产安卓手机没有英文语音引擎，或者浏览器不支持网页朗读，就用它兜底。
-   S.set.engine：auto 先用设备语音，没有英文语音或 2 秒内没开口就自动切到在线；device / online 强制其一 */
-let deviceBad=false,wd=0,OQ=[];
+/* 朗读的三种来源，按顺序尝试：
+   ① 高清录音：tools/make-audio.ps1 用 Azure 预先生成的 mp3（audio/manifest.js 里列出有哪些）
+   ② 设备自带的英文语音
+   ③ 在线朗读（百度翻译）：给没有英文语音的安卓手机兜底
+   S.set.engine：auto 按上面的顺序；device 只用设备语音；online 只用在线朗读 */
+const fnv=s=>{let h=0x811c9dc5;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,0x01000193)}return (h>>>0).toString(16).padStart(8,'0')};
+const recKey=(t,praise)=>(praise?'p':'')+fnv(t);   // 夸奖用 Jenny 的录音，文件名前面多一个 p
+const hasRec=k=>S.set.engine==='auto'&&!!window.AUDIO&&AUDIO.has(k);
+function prefetch(t){const k=recKey(t);if(hasRec(k))fetch('audio/'+k+'.mp3').catch(()=>{})}   // 提前下载下一题的录音，切题时不卡
+let deviceBad=false,wd=0,OQ=[],OCur=null;
 const OA=new Audio();OA.preload='auto';
-OA.onplaying=()=>{document.body.classList.add('talk');const c=OA._cb;OA._cb=null;if(c)c()};
-OA.onended=OA.onerror=()=>{document.body.classList.remove('talk');playNext()};
+OA.onplaying=()=>{document.body.classList.add('talk');const c=OCur&&OCur.cb;if(OCur)OCur.cb=null;if(c)c()};
+OA.onended=()=>{document.body.classList.remove('talk');playNext()};
+OA.onerror=()=>{   // 录音下载失败：这一句改用设备语音读
+  document.body.classList.remove('talk');const n=OCur;OCur=null;
+  if(n&&n.rec)speakVoice(n.text,n.slow,false,n.cb,n.pitch);else playNext();
+};
 function ttsURL(t,slow){const spd=slow?1:S.set.rate<.75?2:S.set.rate<.95?3:4;return `https://fanyi.baidu.com/gettts?lan=en&spd=${spd}&source=web&text=${encodeURIComponent(t)}`}
-function playNext(){const n=OQ.shift();if(!n)return;OA._cb=n.cb;OA.src=ttsURL(n.text,n.slow);const p=OA.play();if(p&&p.catch)p.catch(()=>{})}
-function speakOnline(text,slow,queue,cb){
-  if(!queue){OQ=[];OA.pause()}
-  OQ.push({text,slow,cb});
+function playNext(){
+  const n=OQ.shift();OCur=n||null;if(!n)return;
+  OA.src=n.rec?'audio/'+n.rec+'.mp3':ttsURL(n.text,n.slow);
+  const r=n.rec&&n.slow?.7:1;OA.defaultPlaybackRate=r;OA.playbackRate=r;   // 录音的慢速 = 0.7 倍速播放
+  const p=OA.play();if(p&&p.catch)p.catch(()=>{});
+}
+function enqueue(n,queue){
+  if(!queue){OQ=[];OA.pause();if(synth)synth.cancel()}
+  OQ.push(n);
   if(!queue||OA.paused||OA.ended)playNext();
 }
+function speakOnline(text,slow,queue,cb){enqueue({text,slow,cb},queue)}
 function useOnline(){
   if(S.set.engine==='online'||!synth)return true;
   if(S.set.engine==='device')return false;
   loadVoices();return deviceBad||!VOICES.length;
 }
-function stopSpeak(){clearTimeout(wd);OQ=[];OA.pause();if(synth)synth.cancel();document.body.classList.remove('talk')}
-// queue=true 时排在当前朗读后面（“认一认”页依次读几个词），onstart 用来高亮正在读的卡片
+function stopSpeak(){clearTimeout(wd);OQ=[];OCur=null;OA.pause();if(synth)synth.cancel();document.body.classList.remove('talk')}
+// queue=true 时排在当前朗读后面（“认一认”页依次读几个词），onstart 用来高亮正在读的卡片；pitch 表示夸奖的语气
 function speak(text,slow,queue,onstart,pitch){
+  const k=recKey(text,!!pitch);
+  if(hasRec(k))return enqueue({text,slow,cb:onstart,rec:k,pitch},queue);
+  speakVoice(text,slow,queue,onstart,pitch);
+}
+function speakVoice(text,slow,queue,onstart,pitch){
   if(useOnline())return speakOnline(text,slow,queue,onstart);
   try{
     if(!queue){clearTimeout(wd);OQ=[];OA.pause();if(synth.speaking||synth.pending)synth.cancel()}
@@ -2138,7 +2161,7 @@ function record(it,right){
 /* ================= 课程流程 ================= */
 let LS=null;
 function startLesson(gi,k){
-  bgmStop();
+  bgmStop();PRAISE.forEach(p=>{const k=recKey(p,true);if(hasRec(k))fetch('audio/'+k+'.mp3').catch(()=>{})});
   const u=UNITS[gi];
   LS={u,k,q:buildLesson(u,k),i:0,ok:0,bad:0,combo:0,best:0,re:new Set(),sel:null,ans:false,lvOpen:levelCur(u.li)>=0};
   show('lesson');renderQ();
@@ -2220,6 +2243,7 @@ function renderQ(){
   if(q.t==='order')renderOrder();
   if(q.t==='recap')q.items.forEach((o,i)=>speak(o.text,false,i>0,()=>litCard(i)));
   else if(q.t!=='read')speak(it.text);
+  const nx=LS.q[LS.i+1];if(nx)prefetch(nx.it.text);
 }
 function litCard(i){document.querySelectorAll('.rcard').forEach((c,j)=>c.classList.toggle('talking',j===i))}
 function renderOrder(){
@@ -2361,8 +2385,8 @@ function openSettings(){
   loadVoices();
   const vopts=VOICES.map(v=>`<option value="${esc(v.voiceURI)}"${voice&&v.voiceURI===voice.voiceURI?' selected':''}>${esc(v.name)} (${esc(v.lang)})</option>`).join('');
   modal(`<h3>⚙️ 设置</h3>
-    <div class="row"><div>朗读方式<small>${VOICES.length?'这台设备有 '+VOICES.length+' 个英文语音':'这台设备没有英文语音，会用在线朗读'}${deviceBad?'（设备语音没反应，已切到在线）':''}</small></div>
-      <select id="sEngine"><option value="auto">自动</option><option value="device">设备语音</option><option value="online">在线朗读（需联网）</option></select></div>
+    <div class="row"><div>朗读方式<small>${window.AUDIO?AUDIO.size+' 条高清录音 · ':''}${VOICES.length?'这台设备有 '+VOICES.length+' 个英文语音':'这台设备没有英文语音，会用在线朗读'}${deviceBad?'（设备语音没反应，已切到在线）':''}</small></div>
+      <select id="sEngine"><option value="auto">自动（推荐）：高清录音优先</option><option value="device">设备语音</option><option value="online">在线朗读（需联网）</option></select></div>
     <div class="row"><div>设备语音<small>iPad 推荐 Samantha</small></div><select id="sVoice">${vopts||'<option>（没有找到英文语音）</option>'}</select></div>
     <div class="row"><div>语速<small id="sRateV">${S.set.rate.toFixed(2)}</small></div><input type="range" id="sRate" min="0.55" max="1.1" step="0.05" value="${S.set.rate}"></div>
     <div class="row"><div>题目显示英文<small>关掉就是纯听力练习</small></div><button class="sw${S.set.text?' on':''}" data-k="text"></button></div>
