@@ -1,0 +1,1282 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="熊猫英语">
+<meta name="theme-color" content="#ffffff">
+<meta name="referrer" content="no-referrer">
+<title>熊猫英语 · 看图听音</title>
+<style>
+:root{
+  color-scheme:light;
+  --green:#58cc02;--green-d:#58a700;--green-bg:#d7ffb8;
+  --red:#ff4b4b;--red-d:#ea2b2b;--red-bg:#ffdfe0;
+  --blue:#1cb0f6;--blue-d:#1899d6;--blue-bg:#ddf4ff;
+  --ink:#3c3c3c;--muted:#777;--faint:#afafaf;--line:#e5e5e5;--soft:#f7f7f7;
+  --emoji:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:#fff}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Segoe UI",sans-serif;color:var(--ink);
+  -webkit-user-select:none;user-select:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%}
+button{font:inherit;color:inherit;cursor:pointer;-webkit-appearance:none;appearance:none}
+.screen{display:none;min-height:100vh;min-height:100dvh}
+.screen.on{display:flex;flex-direction:column}
+.pic{font-family:var(--emoji);line-height:1.15;text-align:center;display:inline-block;word-break:break-all}
+
+/* ---------- 首页 ---------- */
+.top{position:sticky;top:0;z-index:5;background:#fff;border-bottom:2px solid var(--line);
+  padding:10px 16px;padding-top:max(10px,env(safe-area-inset-top))}
+.top-in{max-width:600px;margin:0 auto;display:flex;align-items:center;gap:10px}
+.logo{display:flex;align-items:center;gap:8px;font-weight:900;font-size:20px;color:var(--green);margin-right:auto}
+.logo .pic{font-size:30px}
+.chip{display:flex;align-items:center;gap:4px;font-weight:800;font-size:17px;padding:6px 8px;border-radius:12px}
+.chip.fire{color:#ff9600}.chip.fire.off{color:var(--faint);filter:grayscale(1)}
+.chip.xp{color:#e5a800}
+.icon-btn{border:0;background:none;padding:6px;border-radius:12px;display:flex}
+.icon-btn:active{background:var(--soft)}
+.icon-btn svg{width:28px;height:28px;stroke:var(--faint);fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.path{width:100%;max-width:560px;margin:0 auto;padding:8px 16px 140px}
+.lvl{border-radius:18px;color:#fff;background:var(--c);box-shadow:0 5px 0 var(--cd);padding:16px 18px 14px;margin:30px 0 4px}
+.lvh{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.lvh small{display:block;font-weight:800;opacity:.85;font-size:14px;letter-spacing:.5px}
+.lvh b{font-size:21px}
+.lvh span{font-weight:800;background:rgba(255,255,255,.22);padding:4px 10px;border-radius:10px;font-size:14px;white-space:nowrap}
+.lvbar{height:8px;background:rgba(0,0,0,.15);border-radius:4px;margin-top:10px;overflow:hidden}
+.lvbar i{display:block;height:100%;background:#fff;border-radius:4px}
+.ut{display:flex;align-items:center;gap:12px;color:var(--muted);font-weight:800;font-size:16px;margin:26px 0 4px}
+.ut::before,.ut::after{content:"";flex:1;height:2px;background:var(--line)}
+.nodes{display:flex;flex-direction:column;align-items:center;gap:20px;padding-top:44px}
+.node{position:relative;width:76px;height:70px;border-radius:50%;border:0;background:var(--c);box-shadow:0 7px 0 var(--cd);
+  transform:translateX(var(--x));display:flex;align-items:center;justify-content:center;transition:transform .08s,box-shadow .08s}
+.node .pic{font-size:34px}
+.node:active{transform:translateX(var(--x)) translateY(5px);box-shadow:0 2px 0 var(--cd)}
+.node.locked{background:#e5e5e5;box-shadow:0 7px 0 #cecece}
+.node.locked .pic{filter:grayscale(1);opacity:.45}
+.node.locked.open .pic{filter:grayscale(.6);opacity:.7}
+.node.done::after{content:"✓";position:absolute;right:-4px;bottom:-4px;width:26px;height:26px;border-radius:50%;
+  background:#ffc800;color:#fff;font-weight:900;font-size:16px;display:flex;align-items:center;justify-content:center;border:3px solid #fff}
+.node.cur::before{content:"";position:absolute;inset:-9px;border-radius:50%;border:5px solid var(--c);opacity:.35;animation:ring 1.6s infinite}
+@keyframes ring{0%{transform:scale(.92);opacity:.5}70%{transform:scale(1.12);opacity:0}100%{opacity:0}}
+.bub{position:absolute;bottom:calc(100% + 14px);left:50%;transform:translateX(-50%);background:#fff;color:var(--c);
+  border:2px solid var(--line);border-radius:12px;padding:6px 14px;font-style:normal;font-weight:900;font-size:16px;white-space:nowrap;animation:bob 1.2s ease-in-out infinite}
+.bub::after{content:"";position:absolute;top:100%;left:50%;margin-left:-8px;border:8px solid transparent;border-top-color:#fff}
+@keyframes bob{50%{transform:translateX(-50%) translateY(-5px)}}
+.allclear{text-align:center;margin:40px 0;color:var(--muted);font-weight:800}
+.allclear .pic{font-size:64px;display:block}
+.shake{animation:shake .35s}
+@keyframes shake{25%{translate:-6px 0}50%{translate:6px 0}75%{translate:-4px 0}}
+.toast{position:fixed;left:50%;bottom:40px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;font-weight:700;
+  padding:12px 20px;border-radius:14px;opacity:0;transition:.25s;pointer-events:none;z-index:50;max-width:90vw;text-align:center}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ---------- 课程 ---------- */
+.lhead{width:100%;max-width:680px;margin:0 auto;display:flex;align-items:center;gap:14px;padding:14px 16px;padding-top:max(14px,env(safe-area-inset-top))}
+.x{border:0;background:none;padding:4px;display:flex}
+.x svg{width:28px;height:28px;stroke:var(--faint);stroke-width:3;stroke-linecap:round}
+.bar{flex:1;height:16px;background:var(--line);border-radius:8px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--green);border-radius:8px;transition:width .4s;
+  background-image:linear-gradient(transparent 3px,rgba(255,255,255,.3) 3px,rgba(255,255,255,.3) 6px,transparent 6px)}
+.combo{font-weight:900;color:#ff9600;font-size:16px;min-width:46px;text-align:right;white-space:nowrap}
+.lbody{flex:1;width:100%;max-width:640px;margin:0 auto;padding:6px 16px 16px;display:flex;flex-direction:column}
+.lbody h2{font-size:22px;margin:6px 0 12px;font-weight:800}
+.say{display:flex;align-items:center;gap:12px;margin-bottom:18px;min-height:64px}
+.spk{flex:none;width:64px;height:64px;border-radius:18px;border:0;background:var(--blue);box-shadow:0 5px 0 var(--blue-d);display:flex;align-items:center;justify-content:center}
+.spk svg{width:34px;height:34px;fill:#fff}
+.spk:active{transform:translateY(4px);box-shadow:0 1px 0 var(--blue-d)}
+.spk.slow{width:48px;height:48px;border-radius:14px;font-size:24px;font-family:var(--emoji)}
+.talk .spk:not(.slow) svg{animation:pulse .5s infinite alternate}
+@keyframes pulse{to{transform:scale(1.15)}}
+.sent{font-size:24px;font-weight:700;line-height:1.3;border:2px solid var(--line);border-radius:14px;padding:10px 14px;position:relative;cursor:pointer}
+.sent.hide{color:var(--faint);font-size:18px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;width:100%;max-width:calc(100vh - 390px);max-width:calc(100dvh - 390px);min-width:min(100%,300px);margin:0 auto}
+.opt{container-type:inline-size}
+.opt .pic.nw{white-space:nowrap}
+@supports (font-size:1cqw){.opt .pic{font-size:calc(var(--q) * 1cqw)!important}}
+.opt{position:relative;aspect-ratio:1/1;border:2px solid var(--line);border-bottom-width:5px;border-radius:20px;background:#fff;
+  display:flex;align-items:center;justify-content:center;padding:10px;transition:background .1s,border-color .1s,transform .08s}
+.opt:active{transform:translateY(2px)}
+.n{position:absolute;top:8px;left:10px;font-size:12px;font-weight:800;color:var(--faint);border:2px solid var(--line);border-radius:7px;padding:0 5px;line-height:18px}
+.opt.sel,.topt.sel,.chip-w.sel{border-color:#84d8ff;background:var(--blue-bg)}
+.opt.sel .n,.topt.sel .n{border-color:#84d8ff;color:var(--blue)}
+.opt.right,.topt.right,.chip-w.right{border-color:var(--green);background:var(--green-bg)}
+.opt.wrong,.topt.wrong,.chip-w.wrong{border-color:var(--red);background:var(--red-bg)}
+/* 代码绘制的场景 / 本地图片 */
+.scene{display:block;border-radius:12px}
+.scene text{font-family:var(--emoji)}
+.opt .scene,.opt .pimg{width:100%;height:100%}
+.card .scene,.card .pimg{width:min(60vw,280px);height:min(60vw,280px)}
+.bigpic .scene,.bigpic .pimg{width:180px;height:180px}
+.pimg{display:block;object-fit:contain;border-radius:12px}
+mark{background:#fff3b0;color:inherit;border-radius:6px;padding:0 4px}
+/* 选词填空 */
+.fsent{font-size:26px;font-weight:700;line-height:1.7;margin:6px 0 24px;text-align:center}
+.blank{display:inline-block;min-width:96px;border-bottom:3px solid var(--ink);margin:0 6px;color:var(--blue);text-align:center;line-height:1.2}
+.blank.ok{color:var(--green-d);border-color:var(--green)}
+.blank.no{color:var(--red-d);border-color:var(--red)}
+.chips{display:flex;flex-wrap:wrap;gap:12px;justify-content:center}
+.chip-w,.wt{border:2px solid var(--line);border-bottom-width:4px;border-radius:14px;background:#fff;font-weight:700}
+.chip-w{padding:12px 22px;font-size:22px}
+/* 连词成句 */
+.ans{min-height:126px;display:flex;flex-wrap:wrap;gap:8px;align-content:flex-start;padding:10px 0;margin-bottom:22px;
+  background:repeating-linear-gradient(transparent 0 57px,var(--line) 57px 59px)}
+.bank{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.wt{padding:9px 14px;font-size:20px;line-height:1.3}
+.wt.used{background:var(--line);color:transparent;border-color:var(--line)}
+.ans.right .wt{border-color:var(--green);background:var(--green-bg)}
+.ans.wrong .wt{border-color:var(--red);background:var(--red-bg)}
+.opt.right{animation:hop .4s}
+.opt.wrong,.topt.wrong,.chip-w.wrong,.ans.wrong{animation:shake .4s}
+.foot.bad{animation:flash .5s}
+@keyframes flash{0%{background:#ff9ea0}100%{background:var(--red-bg)}}
+.rgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;width:100%}
+.rcard{border:2px solid var(--line);border-bottom-width:5px;border-radius:20px;background:#fff;padding:12px;display:flex;flex-direction:column;align-items:center;gap:8px}
+.rcard .scene,.rcard .pimg{width:100%;height:auto;aspect-ratio:1/1}
+.rcard b{font-size:19px;line-height:1.25}
+.rcard small{color:var(--muted);font-size:14px}
+.rcard:active{transform:translateY(2px)}
+.rcard.talking{border-color:#84d8ff;background:var(--blue-bg)}
+@keyframes hop{40%{transform:scale(1.06)}}
+.bigpic{display:flex;align-items:center;justify-content:center;border:2px solid var(--line);border-radius:22px;padding:18px;margin-bottom:16px;min-height:150px}
+.tlist{display:flex;flex-direction:column;gap:10px}
+.topt{position:relative;text-align:left;border:2px solid var(--line);border-bottom-width:5px;border-radius:16px;background:#fff;padding:14px 16px 14px 46px;font-size:19px;font-weight:700;line-height:1.3}
+.topt .n{top:50%;left:12px;transform:translateY(-50%)}
+.badge{align-self:flex-start;background:#f3e3ff;color:#a560e8;font-weight:900;font-size:14px;padding:6px 12px;border-radius:10px;margin:6px 0 10px}
+.teach{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center}
+.teach .card{border:2px solid var(--line);border-bottom-width:5px;border-radius:26px;padding:24px 34px;min-width:min(100%,280px)}
+.teach .ttext{display:flex;align-items:center;gap:12px;font-size:30px;font-weight:800}
+.teach .zh{font-size:18px;color:var(--muted)}
+.foot{border-top:2px solid var(--line);padding:16px;padding-bottom:max(16px,env(safe-area-inset-bottom));transition:background .15s}
+.foot.ok{background:var(--green-bg);border-color:transparent}
+.foot.bad{background:var(--red-bg);border-color:transparent}
+.fin{max-width:640px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
+.fb{display:none;align-items:center;gap:12px}
+.foot.ok .fb,.foot.bad .fb{display:flex}
+.fb .face{flex:none;width:58px;height:58px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-size:34px;font-family:var(--emoji)}
+.fb b{display:block;font-size:24px;font-weight:900}
+.fb p{margin:2px 0 0;font-size:16px;font-weight:700}
+.fb p span{font-weight:500;opacity:.8}
+.foot.ok .fb{color:var(--green-d)}
+.foot.bad .fb{color:var(--red-d)}
+.btn{width:100%;border:0;border-radius:16px;padding:15px;font-size:19px;font-weight:900;letter-spacing:1px;color:#fff;background:var(--green);box-shadow:0 5px 0 var(--green-d);transition:transform .08s}
+.btn:active{transform:translateY(4px);box-shadow:0 1px 0 var(--green-d)}
+.btn:disabled{background:var(--line);color:var(--faint);box-shadow:0 5px 0 #d0d0d0;cursor:default;transform:none}
+.foot.bad .btn{background:var(--red);box-shadow:0 5px 0 var(--red-d)}
+.btn.ghost{background:#fff;color:var(--blue);border:2px solid var(--line);box-shadow:0 4px 0 var(--line)}
+
+/* Amazing 弹出 */
+.pop{position:fixed;left:50%;top:36%;z-index:40;pointer-events:none;transform:translate(-50%,-50%);font-size:min(14vw,68px);font-weight:900;
+  color:#fff;-webkit-text-stroke:3px var(--green-d);paint-order:stroke fill;text-shadow:0 6px 0 var(--green-d);animation:popin 1.1s forwards;white-space:nowrap}
+@keyframes popin{0%{transform:translate(-50%,-50%) scale(.2) rotate(-8deg);opacity:0}25%{transform:translate(-50%,-50%) scale(1.15) rotate(3deg);opacity:1}
+  40%{transform:translate(-50%,-50%) scale(1)}80%{opacity:1}100%{transform:translate(-50%,-80%) scale(1);opacity:0}}
+.conf{position:fixed;left:50%;top:36%;z-index:39;pointer-events:none;font-size:30px;font-family:var(--emoji);animation:fly 1s ease-out forwards}
+@keyframes fly{from{transform:translate(-50%,-50%) scale(.4);opacity:1}to{transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(1) rotate(var(--r));opacity:0}}
+
+/* 完成页 */
+.done{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px 16px}
+.done .hero{font-size:110px;font-family:var(--emoji);animation:hop 1s infinite}
+.done h1{font-size:30px;margin:8px 0 4px;color:#ffc800;font-weight:900}
+.done .lvup{font-size:18px;font-weight:800;color:var(--blue);margin:4px 0}
+.stars{font-size:46px;letter-spacing:6px;margin:6px 0 18px;font-family:var(--emoji)}
+.stars .off{filter:grayscale(1);opacity:.3}
+.tiles{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+.tile{width:130px;border:2px solid var(--tc);border-radius:16px;overflow:hidden;background:var(--tc)}
+.tile b{display:block;color:#fff;font-size:13px;padding:4px 0}
+.tile span{display:block;background:#fff;color:var(--tc);font-size:24px;font-weight:900;padding:12px 0;border-radius:13px}
+
+/* 弹窗 */
+.modal{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;padding:16px}
+.modal.on{display:flex}
+.sheet{background:#fff;border-radius:22px;padding:22px 20px;width:100%;max-width:440px;max-height:90vh;overflow:auto;-webkit-user-select:none}
+.sheet h3{margin:0 0 14px;font-size:22px;font-weight:900}
+.sheet p{color:var(--muted);line-height:1.5}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:2px solid var(--soft);font-weight:700}
+.row small{display:block;color:var(--faint);font-weight:500;font-size:13px;margin-top:2px}
+.row select{font:inherit;font-size:15px;padding:8px;border-radius:10px;border:2px solid var(--line);background:#fff;max-width:200px}
+.row input[type=range]{width:150px;accent-color:var(--blue)}
+.sw{position:relative;flex:none;width:52px;height:30px;border-radius:15px;background:var(--line);border:0;transition:background .15s}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:left .15s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.sw.on{background:var(--green)}.sw.on::after{left:25px}
+.btns{display:flex;gap:10px;margin-top:18px}
+.btns .btn{font-size:17px;padding:13px}
+.btn.red{background:var(--red);box-shadow:0 5px 0 var(--red-d)}
+.ver{text-align:center;color:var(--faint);font-size:12px;margin-top:14px}
+
+@media (max-width:420px){
+  .lbody h2{font-size:19px}
+  .sent{font-size:20px}
+  .teach .ttext{font-size:24px}
+  .grid{gap:10px}
+}
+</style>
+</head>
+<body>
+
+<!-- 首页：学习路径 -->
+<section class="screen on" id="home">
+  <header class="top"><div class="top-in">
+    <div class="logo"><span class="pic">🐼</span>熊猫英语</div>
+    <div class="chip fire" id="hFire">🔥 <span>0</span></div>
+    <div class="chip xp" id="hXp">⭐ <span>0</span></div>
+    <button class="icon-btn" id="hSet" aria-label="设置"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+  </div></header>
+  <main class="path" id="path"></main>
+</section>
+
+<!-- 课程 -->
+<section class="screen" id="lesson">
+  <div class="lhead">
+    <button class="x" id="lQuit" aria-label="退出"><svg viewBox="0 0 24 24"><path d="M5 5l14 14M19 5L5 19"/></svg></button>
+    <div class="bar"><i id="lBar"></i></div>
+    <div class="combo" id="lCombo"></div>
+  </div>
+  <div class="lbody" id="lBody"></div>
+  <div class="foot" id="lFoot"><div class="fin">
+    <div class="fb" id="lFb"></div>
+    <button class="btn" id="lMain" disabled>检查</button>
+  </div></div>
+</section>
+
+<!-- 完成 -->
+<section class="screen" id="finish">
+  <div class="done" id="fBody"></div>
+  <div class="foot"><div class="fin"><button class="btn" id="fNext">继续</button></div></div>
+</section>
+
+<div class="modal" id="modal"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+'use strict';
+const VERSION='1.3';
+const KEY='panda-english-v1';
+
+/* ================= 课程内容 =================
+   每行：英文 | 图片(emoji) | 中文
+   级别参照 RAZ：aa 单词 → A 短语 → B 句型 → C 描述 → D 进行时 → E 日常 → F 季节/过去式 → G 长句
+   每个单元同一句型，选项来自同单元，孩子要听清关键词才能选对。
+   图片三种写法：emoji；“#背景 物体@x,y,大小[,f翻转] …”代码绘制场景（[table] 这类是画出来的道具）；“img:文件名”读 images 文件夹
+   英文里的 [对/错/错] 是选词填空：第一个是正确答案 */
+const U=(name,icon,src)=>({name,icon,items:src.trim().split('\n').map(l=>{
+  const [raw,pic,zh]=l.split('|').map(s=>s.trim()),it={text:raw,pic:pic||'-',zh:zh||''};
+  const m=raw.match(/\[([^\]]+)\]/);
+  if(m){const o=m[1].split('/');it.text=raw.replace(m[0],o[0]);it.blank={answer:o[0],opts:o,pre:raw.slice(0,m.index),post:raw.slice(m.index+m[0].length)}}
+  return it;
+})});
+const LEVELS=[
+{id:'aa',name:'AA',title:'第一批单词',c:'#58cc02',cd:'#58a700',units:[
+U('动物 Animals','🐾',`
+cat|🐱|猫
+dog|🐶|狗
+pig|🐷|猪
+cow|🐮|奶牛
+duck|🦆|鸭子
+fish|🐟|鱼
+bird|🐦|鸟
+rabbit|🐰|兔子
+bear|🐻|熊
+frog|🐸|青蛙`),
+U('食物 Food','🍎',`
+apple|🍎|苹果
+banana|🍌|香蕉
+grapes|🍇|葡萄
+orange|🍊|橙子
+milk|🥛|牛奶
+egg|🥚|鸡蛋
+cake|🍰|蛋糕
+bread|🍞|面包
+ice cream|🍦|冰淇淋`),
+U('颜色 Colors','🎨',`
+red|🔴|红色
+blue|🔵|蓝色
+green|🟢|绿色
+yellow|🟡|黄色
+black|⚫|黑色
+white|⚪|白色
+purple|🟣|紫色
+brown|🟤|棕色`),
+U('数字 Numbers','🔢',`
+one|1️⃣|一
+two|2️⃣|二
+three|3️⃣|三
+four|4️⃣|四
+five|5️⃣|五
+six|6️⃣|六
+seven|7️⃣|七
+eight|8️⃣|八
+nine|9️⃣|九
+ten|🔟|十`),
+U('身体 Body','✋',`
+eye|👁️|眼睛
+ear|👂|耳朵
+nose|👃|鼻子
+mouth|👄|嘴巴
+hand|✋|手
+foot|🦶|脚
+leg|🦵|腿
+tooth|🦷|牙齿`),
+U('家人 Family','👪',`
+mom|👩|妈妈
+dad|👨|爸爸
+baby|👶|宝宝
+boy|👦|男孩
+girl|👧|女孩
+grandma|👵|奶奶
+grandpa|👴|爷爷
+family|👨‍👩‍👧‍👦|一家人`)
+]},
+{id:'A',name:'A',title:'常用词和短语',c:'#1cb0f6',cd:'#1899d6',units:[
+U('身边的东西 Things','🎒',`
+book|📖|书
+bag|🎒|书包
+hat|👒|帽子
+shoe|👟|鞋子
+cup|☕|杯子
+bed|🛏️|床
+chair|🪑|椅子
+door|🚪|门
+clock|⏰|钟
+ball|⚽|球`),
+U('大自然 Nature','🌳',`
+sun|☀️|太阳
+moon|🌙|月亮
+star|⭐|星星
+tree|🌳|树
+flower|🌸|花
+rain|🌧️|雨
+snow|❄️|雪
+cloud|☁️|云
+sea|🌊|大海
+rainbow|🌈|彩虹`),
+U('打招呼 Hello','👋',`
+Hello!|👋😃|你好！
+Goodbye!|👋🚶|再见！
+Good morning!|🌅|早上好！
+Good night!|🌙😴|晚安！
+Thank you!|🙏|谢谢！
+I'm sorry.|😔|对不起。
+Happy birthday!|🎂🎉|生日快乐！
+I love you!|🥰❤️|我爱你！`),
+U('什么颜色 Color + Thing','🍏',`
+a red apple|🍎|一个红苹果
+a green apple|🍏|一个青苹果
+a red car|🚗|一辆红色的车
+a blue car|🚙|一辆蓝色的车
+a red heart|❤️|一颗红心
+a blue heart|💙|一颗蓝心
+a yellow heart|💛|一颗黄色的心
+a green book|📗|一本绿色的书
+a blue book|📘|一本蓝色的书
+a red book|📕|一本红色的书`),
+U('数一数 How many','🐱',`
+one cat|🐱|一只猫
+two cats|🐱🐱|两只猫
+three cats|🐱🐱🐱|三只猫
+one dog|🐶|一只狗
+two dogs|🐶🐶|两只狗
+three dogs|🐶🐶🐶|三只狗
+two balls|⚽⚽|两个球
+four stars|⭐⭐⭐⭐|四颗星星
+five ducks|🦆🦆🦆🦆🦆|五只鸭子`),
+U('动作 Actions','🏃',`
+run|🏃|跑
+walk|🚶|走路
+swim|🏊|游泳
+sleep|😴|睡觉
+eat|🍽️|吃
+drink|🥤|喝
+sing|🎤|唱歌
+dance|💃|跳舞
+cry|😭|哭
+laugh|😂|笑`)
+]},
+{id:'B',name:'B',title:'第一批句子',c:'#ce82ff',cd:'#a568cc',units:[
+U('我看见 I see','👀',`
+I see a cat.|👀🐱|我看见一只猫。
+I see a bird.|👀🐦|我看见一只鸟。
+I see a tree.|👀🌳|我看见一棵树。
+I see a car.|👀🚗|我看见一辆车。
+I see a fish.|👀🐟|我看见一条鱼。
+I see a ball.|👀⚽|我看见一个球。
+I see the sun.|👀☀️|我看见太阳。
+I see the moon.|👀🌙|我看见月亮。`),
+U('我喜欢 I like','😋',`
+I like apples.|😋🍎|我喜欢苹果。
+I like cookies.|😋🍪|我喜欢饼干。
+I like pizza.|😋🍕|我喜欢披萨。
+I like carrots.|😋🥕|我喜欢胡萝卜。
+I like grapes.|😋🍇|我喜欢葡萄。
+I like ice cream.|😋🍦|我喜欢冰淇淋。
+I like cake.|😋🍰|我喜欢蛋糕。
+I like milk.|😋🥛|我喜欢牛奶。`),
+U('我会 I can','💪',`
+I can run.|🏃💨|我会跑。
+I can swim.|🏊|我会游泳。
+I can ride a bike.|🚴|我会骑自行车。
+I can sing.|🎤|我会唱歌。
+I can dance.|💃|我会跳舞。
+I can read.|📖|我会读书。
+I can draw.|🎨|我会画画。
+I can play soccer.|⚽|我会踢足球。`),
+U('这是我的 This is my','👆',`
+This is my mom.|👆👩|这是我的妈妈。
+This is my dad.|👆👨|这是我的爸爸。
+This is my dog.|👆🐶|这是我的狗。
+This is my cat.|👆🐱|这是我的猫。
+This is my bag.|👆🎒|这是我的书包。
+This is my hat.|👆🧢|这是我的帽子。
+This is my bike.|👆🚲|这是我的自行车。
+This is my teddy bear.|👆🧸|这是我的泰迪熊。`),
+U('心情 I am','😀',`
+I am happy.|😀|我很开心。
+I am sad.|😢|我很难过。
+I am sleepy.|😴|我很困。
+I am angry.|😠|我很生气。
+I am scared.|😱|我很害怕。
+I am sick.|🤒|我生病了。
+I am hot.|🥵|我很热。
+I am cold.|🥶|我很冷。`),
+U('常见词 1 Sight words','🔤',`
+I [see/sea/she] a dog.|👀🐶|我看见一只狗。
+I [like/look/lake] my dog.|🥰🐶|我喜欢我的狗。
+I [can/cat/car] jump.|🤸|我会跳。
+This [is/it/in] my book.|👆📖|这是我的书。
+I [am/an/at] five.|🧒5️⃣|我五岁了。
+[The/They/Then] sun is hot.|☀️🥵|太阳很热。
+Look at [my/me/by] hat.|👀👒|看我的帽子。
+I [go/got/so] to school.|🏫|我去上学。`)
+]},
+{id:'C',name:'C',title:'描述身边的事',c:'#ff9600',cd:'#cc7800',units:[
+U('它是什么颜色','🍌',`
+The apple is red.|🍎|苹果是红色的。
+The banana is yellow.|🍌|香蕉是黄色的。
+The leaf is green.|🍃|叶子是绿色的。
+The sea is blue.|🌊|大海是蓝色的。
+The snow is white.|❄️|雪是白色的。
+The grapes are purple.|🍇|葡萄是紫色的。
+The carrot is orange.|🥕|胡萝卜是橙色的。
+The chocolate is brown.|🍫|巧克力是棕色的。`),
+U('大和小 Big & Small','🐘',`
+The elephant is big.|🐘|大象很大。
+The mouse is small.|🐭|老鼠很小。
+The giraffe is tall.|🦒|长颈鹿很高。
+The turtle is slow.|🐢|乌龟很慢。
+The rabbit is fast.|🐇💨|兔子跑得很快。
+The whale is big.|🐋|鲸鱼很大。
+The ant is small.|🐜|蚂蚁很小。
+The snail is slow.|🐌|蜗牛很慢。`),
+U('天气 Weather','⛅',`
+It is sunny.|☀️|今天是晴天。
+It is rainy.|🌧️|今天下雨。
+It is snowy.|☃️|今天下雪。
+It is windy.|🌬️|今天刮风。
+It is cloudy.|☁️|今天多云。
+It is hot.|🥵|天气很热。
+It is cold.|🥶|天气很冷。
+It is night.|🌃|现在是晚上。`),
+U('去哪里 I go to','🏫',`
+I go to school.|🏫|我去上学。
+I go to the park.|🏞️|我去公园。
+I go to the zoo.|🦁🦓|我去动物园。
+I go to the beach.|🏖️|我去海滩。
+I go to the store.|🏪|我去商店。
+I go to the hospital.|🏥|我去医院。
+I go home.|🏠|我回家。
+I go to the library.|📚|我去图书馆。`),
+U('吃和喝 Eat & Drink','🍚',`
+I eat rice.|🍚|我吃米饭。
+I eat noodles.|🍜|我吃面条。
+I eat bread.|🍞|我吃面包。
+I eat an egg.|🍳|我吃一个鸡蛋。
+I eat soup.|🍲|我喝汤。
+I drink milk.|🥛|我喝牛奶。
+I drink water.|💧|我喝水。
+I drink juice.|🧃|我喝果汁。`),
+U('在哪里 In / On / Under','📦',`
+The cat is in the box.|#room 🐱@50,50,32 [box]@50,60,54|猫在箱子里。
+The cat is on the box.|#room [cbox]@46,64,48 🐱@50,42,30|猫在箱子上。
+The cat is under the table.|#room [table]@50,46,72 🐱@50,66,24|猫在桌子下面。
+The cat is on the table.|#room [table]@50,62,72 🐱@50,47,26|猫在桌子上。
+The ball is in the box.|#room ⚽@50,57,22 [box]@50,62,54|球在箱子里。
+The ball is under the table.|#room [table]@50,46,72 ⚽@50,70,18|球在桌子下面。
+The bird is in the tree.|#sky 🌳@50,54,72 🐦@57,38,16|鸟在树上。
+The dog is on the bed.|#room [bed]@50,58,80 🐶@58,46,26|狗在床上。
+The dog is under the bed.|#room [bed]@50,48,80 🐶@58,76,18|狗在床底下。`),
+U('常见词 2 Sight words','🔤',`
+[Here/There/Where] is my cat.|👉🐱|我的猫在这里。
+[Look/Like/Lock] at the bird.|👀🐦|看那只鸟。
+We [are/and/any] friends.|👫|我们是朋友。
+It [is/in/it] a big dog.|🐕|它是一只大狗。
+[You/Yes/Your] can swim.|🫵🏊|你会游泳。
+I [want/went/what] an apple.|🙋🍎|我想要一个苹果。
+[He/She/We] is a boy.|👦|他是一个男孩。
+[She/He/They] is a girl.|👧|她是一个女孩。`)
+]},
+{id:'D',name:'D',title:'正在做什么',c:'#ff4b4b',cd:'#d33131',units:[
+U('人们在做什么','🏃',`
+The boy is running.|🏃‍♂️|男孩在跑步。
+The girl is swimming.|🏊‍♀️|女孩在游泳。
+The girl is dancing.|💃|女孩在跳舞。
+The man is cooking.|👨‍🍳|男人在做饭。
+The baby is sleeping.|👶💤|宝宝在睡觉。
+The boy is eating.|👦🍔|男孩在吃东西。
+The man is riding a bike.|🚴‍♂️|男人在骑自行车。
+The woman is singing.|👩‍🎤|女人在唱歌。
+The girl is reading.|👧📖|女孩在看书。`),
+U('动物在做什么','🐒',`
+The fish is swimming.|🐠🌊|鱼在游泳。
+The duck is swimming.|🦆💦|鸭子在游泳。
+The dog is running.|🐕💨|狗在跑。
+The cat is sleeping.|🐈💤|猫在睡觉。
+The bee is flying.|🐝🌸|蜜蜂在飞。
+The monkey is eating a banana.|🐒🍌|猴子在吃香蕉。
+The cow is eating grass.|🐄🌱|奶牛在吃草。
+The bird is singing.|🐦🎶|小鸟在唱歌。`),
+U('穿衣服 I wear','👕',`
+I wear a cap.|🧢|我戴一顶帽子。
+I wear a coat.|🧥|我穿一件外套。
+I wear a dress.|👗|我穿一条裙子。
+I wear glasses.|👓|我戴眼镜。
+I wear socks.|🧦|我穿袜子。
+I wear gloves.|🧤|我戴手套。
+I wear a scarf.|🧣|我戴围巾。
+I wear a T-shirt.|👕|我穿一件T恤。`),
+U('有几个 There are','🎈',`
+There is one moon.|🌙|有一个月亮。
+There are two birds.|🐦🐦|有两只鸟。
+There are three trees.|🌳🌳🌳|有三棵树。
+There are four eggs.|🥚🥚🥚🥚|有四个鸡蛋。
+There are five stars.|⭐⭐⭐⭐⭐|有五颗星星。
+There are two cars.|🚗🚗|有两辆车。
+There is one sun.|☀️|有一个太阳。
+There are three balloons.|🎈🎈🎈|有三个气球。`),
+U('在哪里 2 Behind / Next to','🌳',`
+The rabbit is behind the tree.|#sky 🐰@74,68,24 🌳@46,54,60|兔子在树后面。
+The rabbit is in front of the tree.|#sky 🌳@50,46,60 🐰@50,76,26|兔子在树前面。
+The dog is next to the cat.|#sky 🐶@32,66,30 🐱@68,66,30|狗在猫的旁边。
+The cat is between the dogs.|#sky 🐶@18,66,26 🐱@50,66,26 🐶@82,66,26,f|猫在两只狗中间。
+The bird is over the house.|#sky 🏠@50,64,46 🐦@50,22,20|鸟在房子上面飞。
+The car is in front of the house.|#sky 🏠@50,48,50 🚗@50,78,30|车在房子前面。
+The car is behind the house.|#sky 🚗@72,58,26 🏠@46,56,52|车在房子后面。
+The duck is in the pond.|#sky [pond]@50,76,72 🦆@50,70,24|鸭子在池塘里。`),
+U('常见词 3 Sight words','🔤',`
+[They/Then/The] are playing ball.|👦👧⚽|他们在玩球。
+[What/Want/Went] is this?|❓👉|这是什么？
+[Where/Were/Here] is the cat?|❓🐱|猫在哪里？
+I [have/has/had] two cats.|🐱🐱|我有两只猫。
+She [has/have/his] a hat.|👧👒|她有一顶帽子。
+Come [with/when/white] me.|🧑‍🤝‍🧑|跟我一起来。
+[Can/Car/Cat] you see it?|❓👀|你能看见它吗？
+Let's [play/pay/plan] ball!|⚽😄|我们来玩球吧！`)
+]},
+{id:'E',name:'E',title:'我的一天',c:'#00c2a8',cd:'#009c87',units:[
+U('…和… and','🤝',`
+I have a cat and a dog.|🐱🐶|我有一只猫和一只狗。
+I like apples and bananas.|🍎🍌|我喜欢苹果和香蕉。
+I see the sun and a cloud.|☀️☁️|我看见太阳和一朵云。
+I see a cow and a pig.|🐮🐷|我看见一头牛和一头猪。
+I have a pen and a book.|🖊️📖|我有一支笔和一本书。
+I eat rice and fish.|🍚🐟|我吃米饭和鱼。
+Mom and Dad are happy.|👩👨😀|妈妈和爸爸很开心。
+The boy and the girl are friends.|👦🤝👧|男孩和女孩是朋友。`),
+U('我的一天 My day','⏰',`
+I wake up in the morning.|⏰🌅|我早上起床。
+I brush my teeth.|🪥🦷|我刷牙。
+I wash my hands.|🧼👐|我洗手。
+I eat breakfast.|🥣|我吃早饭。
+I do my homework.|✏️📓|我做作业。
+I take a bath.|🛁|我洗澡。
+I play with my friends.|⚽👫|我和朋友们玩。
+I go to bed at night.|🛏️🌙|我晚上上床睡觉。`),
+U('怎么去 By bus','🚌',`
+I go by car.|🚗|我坐汽车去。
+I go by bus.|🚌|我坐公交车去。
+I go by train.|🚆|我坐火车去。
+I go by plane.|✈️|我坐飞机去。
+I go by boat.|⛵|我坐船去。
+I go by bike.|🚲|我骑自行车去。
+I go by taxi.|🚕|我坐出租车去。
+I walk to school.|🚶🏫|我走路去上学。`),
+U('职业 Jobs','👩‍⚕️',`
+She is a doctor.|👩‍⚕️|她是一名医生。
+He is a farmer.|👨‍🌾|他是一名农民。
+She is a teacher.|👩‍🏫|她是一名老师。
+He is a police officer.|👮‍♂️|他是一名警察。
+He is a firefighter.|👨‍🚒|他是一名消防员。
+She is a cook.|👩‍🍳|她是一名厨师。
+He is a pilot.|👨‍✈️|他是一名飞行员。
+She is a scientist.|👩‍🔬|她是一名科学家。
+He is an astronaut.|👨‍🚀|他是一名宇航员。`),
+U('相反词 Opposites','↔️',`
+The tree is tall.|#sky 🌳@50,44,80|这棵树很高。
+The tree is short.|#sky 🌳@50,64,26|这棵树很矮。
+The pencil is long.|#none [pencil]@50,50,88|这支铅笔很长。
+The pencil is short.|#none [pencil]@50,50,32|这支铅笔很短。
+The glass is full.|#none [glassfull]@50,52,60|杯子是满的。
+The glass is empty.|#none [glassempty]@50,52,60|杯子是空的。
+The dog is big.|#sky 🐕@50,52,70|这只狗很大。
+The dog is small.|#sky 🐕@50,66,22|这只狗很小。`)
+]},
+{id:'F',name:'F',title:'季节和昨天',c:'#ff6fae',cd:'#d9508f',units:[
+U('什么时候 When','🍂',`
+In spring, the flowers grow.|🌷🌱|春天，花儿生长。
+In summer, we swim in the sea.|🏖️🏊|夏天，我们在海里游泳。
+In autumn, the leaves fall.|🍂🍁|秋天，叶子落下。
+In winter, we make a snowman.|☃️|冬天，我们堆雪人。
+On my birthday, I eat cake.|🎂🥳|我过生日时吃蛋糕。
+At night, I see the stars.|🌌|晚上，我看见星星。
+When it rains, I use an umbrella.|☔|下雨时，我打伞。
+When it is hot, I eat ice cream.|🥵🍦|天热时，我吃冰淇淋。`),
+U('昨天 Yesterday','📅',`
+Yesterday I played soccer.|⚽🥅|昨天我踢了足球。
+I went to the zoo.|🦁🦓|我去了动物园。
+We had a picnic.|🧺🌳|我们去野餐了。
+I saw a big whale.|🐋|我看见了一头大鲸鱼。
+I made a cupcake.|🧁|我做了一个纸杯蛋糕。
+I painted a picture.|🎨🖼️|我画了一幅画。
+We flew a kite.|🪁|我们放了风筝。
+I read a book.|📚|我读了一本书。`),
+U('能和不能 can / can\'t','🐧',`
+A fish can swim, but it can't walk.|🐟|鱼会游泳，但不会走路。
+A bird can fly.|🦅|鸟会飞。
+A kangaroo can jump high.|🦘|袋鼠能跳得很高。
+A cheetah can run fast.|🐆|猎豹能跑得很快。
+A snake can't walk.|🐍|蛇不会走路。
+A penguin can swim, but it can't fly.|🐧|企鹅会游泳，但不会飞。
+A monkey can climb trees.|🐒🌳|猴子会爬树。
+A frog can jump.|🐸|青蛙会跳。`)
+]},
+{id:'G',name:'G',title:'长一点的句子',c:'#2b70c9',cd:'#1f539a',units:[
+U('小故事 Stories','📖',`
+The little bear found some honey.|🐻🍯|小熊找到了一些蜂蜜。
+The rabbit is hiding behind the tree.|🐰🌳|兔子躲在树后面。
+The kids are building a sandcastle.|🏖️🏰|孩子们在堆沙堡。
+The rocket is flying to the moon.|🚀🌙|火箭正飞向月亮。
+The farmer is picking apples.|👨‍🌾🍎|农民在摘苹果。
+The dog is chasing the ball.|🐕⚽|小狗在追球。
+The bees are making honey.|🐝🍯|蜜蜂在酿蜂蜜。
+The children are playing in the snow.|⛄🧒|孩子们在雪地里玩。`),
+U('因为…所以… because / so','💡',`
+I am happy because it is my birthday.|😀🎂|我很开心，因为今天是我的生日。
+She is sad because her toy is broken.|😢🧸|她很难过，因为她的玩具坏了。
+He is tired because he ran a lot.|😫🏃|他很累，因为他跑了很多。
+I am hungry, so I eat a sandwich.|🤤🥪|我饿了，所以我吃一个三明治。
+It is cold, so I wear a coat.|🥶🧥|天很冷，所以我穿上外套。
+It is raining, so we stay at home.|🌧️🏠|下雨了，所以我们待在家里。
+The baby is crying because she is hungry.|😭🍼|宝宝在哭，因为她饿了。
+We are excited because we are going to the beach.|🤩🏖️|我们很兴奋，因为我们要去海滩。`),
+U('比一比 Compare','⚖️',`
+The elephant is bigger than the dog.|🐘🐕|大象比狗大。
+The cheetah is faster than the turtle.|🐆🐢|猎豹比乌龟快。
+The giraffe is taller than the horse.|🦒🐎|长颈鹿比马高。
+The mouse is smaller than the cat.|🐭🐈|老鼠比猫小。
+The sun is hotter than the moon.|☀️🌙|太阳比月亮热。
+Ice is colder than water.|🧊💧|冰比水冷。
+The plane is faster than the car.|✈️🚗|飞机比汽车快。
+The whale is the biggest animal in the sea.|🐋🌊|鲸鱼是海里最大的动物。`)
+]},
+{id:'H',name:'H',title:'问与答',c:'#7c4dff',cd:'#5b33d6',units:[
+U('问答 Questions','❓',`
+Where is the cat? It is under the table.|#room [table]@50,46,72 🐱@50,66,24|猫在哪里？它在桌子下面。
+Where is the ball? It is in the box.|#room ⚽@50,57,22 [box]@50,62,54|球在哪里？它在箱子里。
+What is it? It is a rocket.|🚀|这是什么？是一枚火箭。
+Who is he? He is my grandpa.|👴|他是谁？他是我的爷爷。
+How many birds? Five birds.|🐦🐦🐦🐦🐦|有几只鸟？五只。
+What color is the frog? It is green.|🐸|青蛙是什么颜色？绿色。
+What is she doing? She is painting.|👩‍🎨|她在做什么？她在画画。
+How is the weather? It is snowing.|🌨️⛄|天气怎么样？在下雪。`),
+U('先后顺序 First, then','1️⃣',`
+First I wash my hands, then I eat.|🧼👐🍽️|我先洗手，然后吃饭。
+First I put on my socks, then my shoes.|🧦👟|我先穿袜子，再穿鞋。
+First we plant a seed, then it grows.|🌱🌻|我们先种下种子，然后它长大了。
+First the egg cracks, then a chick comes out.|🥚🐣|蛋先裂开，然后小鸡出来了。
+First I read a book, then I go to sleep.|📖😴|我先看书，然后睡觉。
+First it rains, then we see a rainbow.|🌧️🌈|先下雨，然后我们看见彩虹。
+First I mix the flour, then I bake a cake.|🥣🎂|我先和面，然后烤蛋糕。
+The caterpillar becomes a butterfly.|🐛🦋|毛毛虫变成了蝴蝶。`),
+U('想法 Want / Need / Think','💭',`
+I want to be a pilot.|💭👨‍✈️|我想当飞行员。
+I need an umbrella.|🌧️☂️|我需要一把伞。
+I think it will rain.|💭🌧️|我觉得要下雨了。
+I know the answer!|🙋💡|我知道答案！
+I forgot my lunch box.|😱🍱|我忘带午餐盒了。
+I hope you feel better.|🤒💐|希望你快点好起来。
+I want to play outside.|🙋🌳⚽|我想去外面玩。
+I need to tie my shoes.|👟🎀|我需要系鞋带。`),
+U('怎么做 Slowly / Quickly','💨',`
+The turtle walks slowly.|🐢🐌|乌龟走得很慢。
+The cheetah runs quickly.|🐆💨|猎豹跑得很快。
+The baby sleeps quietly.|👶🤫|宝宝安静地睡觉。
+The lion roars loudly.|🦁📢|狮子大声吼叫。
+The girl sings happily.|👧🎶|女孩开心地唱歌。
+The boy cries sadly.|👦😢|男孩伤心地哭。
+The rabbit jumps high.|🐇⬆️|兔子跳得很高。
+The fish swims fast.|🐟💨|鱼游得很快。`)
+]},
+{id:'I',name:'I',title:'讲故事',c:'#8d6e63',cd:'#6d4c41',units:[
+U('童话 Once upon a time','🏰',`
+Once upon a time, there was a little princess.|🏰👸|从前，有一位小公主。
+The prince rode a white horse.|🤴🐴|王子骑着一匹白马。
+The wolf knocked on the door.|🐺🚪|大灰狼敲了敲门。
+The dragon lived in a cave.|🐉🕳️|龙住在山洞里。
+The fairy waved her magic wand.|🧚🪄|仙女挥了挥魔法棒。
+The frog turned into a prince.|🐸➡️🤴|青蛙变成了王子。
+The giant was very tall.|#sky 🧍@46,46,86 🏠@84,80,18|巨人非常高。
+They lived happily ever after.|🤴👸❤️|他们从此过上了幸福的生活。`),
+U('上周末 Last weekend','⛺',`
+Last weekend, we went camping.|⛺🌲|上周末我们去露营了。
+We caught three fish in the lake.|🎣🐟🐟🐟|我们在湖里钓了三条鱼。
+I lost my tooth yesterday.|🦷😁|我昨天掉了一颗牙。
+We built a big snowman.|☃️👫|我们堆了一个大雪人。
+My dad cooked dinner for us.|👨‍🍳🍝|爸爸给我们做了晚饭。
+I fell off my bike and hurt my knee.|🚲🤕|我从自行车上摔下来，伤了膝盖。
+We visited Grandma on Sunday.|👵🏡|星期天我们去看了奶奶。
+The cat climbed up the tree and could not get down.|#sky 🌳@50,54,74 🐱@60,30,18|猫爬上了树，下不来了。`),
+U('健康 Stay healthy','💪',`
+Eat vegetables to stay healthy.|🥦🥕💪|多吃蔬菜身体好。
+Wash your hands before you eat.|🚰👐|吃饭前要洗手。
+Brush your teeth twice a day.|🪥🦷✌️|每天刷两次牙。
+Go to bed early.|🛏️🌙|要早点睡觉。
+Drink lots of water.|💧🥤|多喝水。
+Wear a helmet when you ride a bike.|⛑️🚲|骑车时要戴头盔。
+Cover your mouth when you cough.|🤧✋|咳嗽时要捂住嘴。
+Play outside in the sunshine.|☀️🏃|在阳光下玩耍。`)
+]},
+{id:'J',name:'J',title:'将来和如果',c:'#f4b400',cd:'#c78f00',units:[
+U('将来 Will / Going to','🔮',`
+Tomorrow I am going to visit the museum.|🏛️🦖|明天我要去参观博物馆。
+Next summer we will fly to the beach.|✈️🏖️|明年夏天我们要坐飞机去海边。
+When I grow up, I will be a doctor.|🧒➡️👩‍⚕️|我长大后要当医生。
+It is going to snow tonight.|🌙🌨️|今晚要下雪了。
+I will help Mom clean the house.|🧹👩|我会帮妈妈打扫房子。
+We are going to have a party.|🎉🎈🎂|我们要开一个派对。
+The bus will come in five minutes.|🚌⏱️|公交车五分钟后到。
+I will call you later.|📞👋|我待会儿给你打电话。`),
+U('如果 If','🤔',`
+If it rains, we will stay inside.|🌧️🏠|如果下雨，我们就待在屋里。
+If you are tired, you should rest.|😫🛋️|如果你累了，就应该休息。
+If you drop the glass, it will break.|🥛💥|如果你把杯子摔了，它会碎。
+If you mix blue and yellow, you get green.|🔵🟡➡️🟢|蓝色和黄色混在一起就变成绿色。
+If the ice gets warm, it melts.|🧊☀️💧|冰变暖就会融化。
+If you are lost, ask a police officer.|😟👮|如果你迷路了，就去问警察。
+If you plant a seed, it will grow.|🌰🌱|如果你种下种子，它就会长大。
+If you feed the cat, it will be happy.|🐱🍲|如果你喂猫，它会很开心。`),
+U('最… The biggest','🏆',`
+The blue whale is the biggest animal on Earth.|🐋🌍|蓝鲸是地球上最大的动物。
+The cheetah is the fastest animal on land.|🐆💨🏁|猎豹是陆地上跑得最快的动物。
+This is the tallest tree in the forest.|#sky 🌲@20,68,28 🌲@50,46,74 🌲@80,68,32|这是森林里最高的树。
+The red ball is the smallest.|#none 🔵@24,56,36 🟢@56,58,26 🔴@82,60,13|红色的球最小。
+Mount Everest is the highest mountain in the world.|🏔️🌍|珠穆朗玛峰是世界上最高的山。
+Winter is the coldest season.|❄️🥶|冬天是最冷的季节。
+Today is the happiest day of my life!|🥳🎉|今天是我最开心的一天！
+The turtle is the slowest in the race.|🐇🐢🏁|乌龟是比赛中最慢的。`),
+U('科学 Science','🔬',`
+Plants need sunlight and water to grow.|🌱☀️💧|植物生长需要阳光和水。
+The Earth goes around the sun.|🌍🔄☀️|地球绕着太阳转。
+Bees help flowers make seeds.|🐝🌼|蜜蜂帮助花儿结出种子。
+Ice melts when it gets warm.|🧊➡️💧|冰变暖时会融化。
+Water turns into ice when it is very cold.|💧➡️🧊|水在很冷的时候会结成冰。
+Magnets can pick up metal.|🧲📎|磁铁能吸起金属。
+The moon shines at night.|🌕🌃|月亮在夜晚发光。
+Dinosaurs lived a long time ago.|🦕🦖|恐龙生活在很久很久以前。`)
+]}
+];
+
+/* ================= 索引 ================= */
+const ALL=[],UNITS=[];
+function chunk(a){const r=[];for(let i=0;i<a.length;i+=3)r.push(a.slice(i,i+3));if(r.length>1&&r[r.length-1].length<2){const l=r.pop();r[r.length-1]=r[r.length-1].concat(l)}return r}
+LEVELS.forEach((lv,li)=>lv.units.forEach((u,ui)=>{
+  u.li=li;u.ui=ui;u.key=lv.id+'.'+ui;u.gi=UNITS.length;u.level=lv;
+  u.items.forEach(it=>{it.id=lv.id+'|'+it.text;it.unit=u;ALL.push(it)});
+  u.chunks=chunk(u.items);u.nL=u.chunks.length+1;   // 若干新课 + 1 节复习课
+  UNITS.push(u);
+}));
+
+/* ================= 存档 ================= */
+const DEF={done:{},stats:{},xp:0,streak:0,last:'',set:{rate:.85,text:true,sfx:true,all:false,voice:'',group:true,engine:'auto'}};
+let S;
+try{S=JSON.parse(localStorage.getItem(KEY))||{}}catch(e){S={}}
+S=Object.assign({},DEF,S);S.set=Object.assign({},DEF.set,S.set||{});
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+const today=(d=new Date())=>d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
+
+/* ================= 工具 ================= */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+const SEG=window.Intl&&Intl.Segmenter?new Intl.Segmenter('en',{granularity:'grapheme'}):null;
+const graphemes=s=>SEG?Array.from(SEG.segment(s),x=>x.segment):Array.from(s.replace(/[️‍]/g,''));
+/* 场景：100×100 的 SVG，背景 + 定位的 emoji + 画出来的道具 */
+const SKY='<rect width="100" height="100" fill="#d6f2ff"/>';
+const BG={
+  sky:SKY+'<rect y="72" width="100" height="28" fill="#9ad46b"/><rect y="72" width="100" height="2.5" fill="#b8e68e"/>',
+  room:'<rect width="100" height="100" fill="#fff1dc"/><rect y="72" width="100" height="28" fill="#e2b27c"/><rect y="70.5" width="100" height="2.5" fill="#c99560"/>',
+  sea:SKY+'<rect y="55" width="100" height="45" fill="#5cc3f0"/><path d="M0 62q6-3 12 0t12 0 12 0 12 0 12 0 12 0 12 0 12 0 12 0" stroke="#bfeaff" stroke-width="1.5" fill="none"/>',
+  beach:SKY+'<rect y="45" width="100" height="20" fill="#5cc3f0"/><rect y="63" width="100" height="37" fill="#f6dc9a"/>',
+  night:'<rect width="100" height="100" fill="#26315f"/><g fill="#fff">'+[[12,14],[30,8],[48,18],[70,10],[86,22],[20,32],[62,30]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r=".9"/>`).join('')+'</g><rect y="78" width="100" height="22" fill="#2f4d3f"/>',
+  snow:'<rect width="100" height="100" fill="#e3f3ff"/><rect y="68" width="100" height="32" fill="#fff"/>',
+  water:'<rect width="100" height="100" fill="#8fd8f7"/>',
+  none:'<rect width="100" height="100" fill="#fafafa"/>'
+};
+const r2=n=>Math.round(n*100)/100;
+function glass(x,y,s,full){
+  const hw=f=>s*.3-s*.075*f,t=y-s/2,b=y+s/2,w=t+s*.2;
+  return (full?`<path d="M${r2(x-hw(.2))} ${r2(w)}L${r2(x-s*.225)} ${r2(b)}L${r2(x+s*.225)} ${r2(b)}L${r2(x+hw(.2))} ${r2(w)}z" fill="#6cc6f2"/>`:'')+
+    `<path d="M${r2(x-s*.3)} ${r2(t)}L${r2(x-s*.225)} ${r2(b)}L${r2(x+s*.225)} ${r2(b)}L${r2(x+s*.3)} ${r2(t)}" fill="none" stroke="#9aa9b5" stroke-width="1.6" stroke-linejoin="round"/>`;
+}
+const PROP={
+  table:(x,y,s)=>{const l=x-s/2;return `<rect x="${l}" y="${y}" width="${s}" height="${r2(s*.07)}" rx="1.2" fill="#b9773c"/><rect x="${r2(l+s*.08)}" y="${r2(y+s*.06)}" width="${r2(s*.06)}" height="${r2(s*.39)}" fill="#9a5f2c"/><rect x="${r2(l+s*.86)}" y="${r2(y+s*.06)}" width="${r2(s*.06)}" height="${r2(s*.39)}" fill="#9a5f2c"/>`},
+  bed:(x,y,s)=>{const l=x-s/2;return `<rect x="${l}" y="${r2(y-s*.2)}" width="${r2(s*.06)}" height="${r2(s*.65)}" rx="1" fill="#8d5a3b"/><rect x="${r2(l+s*.94)}" y="${r2(y-s*.04)}" width="${r2(s*.06)}" height="${r2(s*.49)}" rx="1" fill="#8d5a3b"/><rect x="${r2(l+s*.06)}" y="${r2(y+s*.12)}" width="${r2(s*.88)}" height="${r2(s*.07)}" fill="#a86d47"/><rect x="${r2(l+s*.06)}" y="${y}" width="${r2(s*.88)}" height="${r2(s*.12)}" rx="2" fill="#fff" stroke="#d9d9d9" stroke-width=".6"/><rect x="${r2(l+s*.35)}" y="${r2(y-s*.01)}" width="${r2(s*.59)}" height="${r2(s*.13)}" rx="2" fill="#7cc4f5"/><ellipse cx="${r2(l+s*.18)}" cy="${r2(y-s*.02)}" rx="${r2(s*.09)}" ry="${r2(s*.045)}" fill="#fff" stroke="#d9d9d9" stroke-width=".6"/>`},
+  // 打开的箱子：只画前脸和翻开的盖子，前面写的物体会显得“在箱子里”
+  box:(x,y,s)=>{const l=x-s/2,r=x+s/2,h=s*.62;return `<path d="M${l} ${y}L${r2(l-s*.16)} ${r2(y-s*.2)}L${r2(l+s*.1)} ${r2(y-s*.24)}L${r2(l+s*.14)} ${y}z" fill="#d9a25f"/><path d="M${r} ${y}L${r2(r+s*.16)} ${r2(y-s*.2)}L${r2(r-s*.1)} ${r2(y-s*.24)}L${r2(r-s*.14)} ${y}z" fill="#d9a25f"/><rect x="${l}" y="${y}" width="${s}" height="${r2(h)}" rx="1.5" fill="#c98a4b"/><rect x="${l}" y="${y}" width="${s}" height="${r2(s*.06)}" fill="#a96f35"/><rect x="${r2(x-s*.08)}" y="${r2(y+s*.06)}" width="${r2(s*.16)}" height="${r2(h*.35)}" fill="#e8c48f"/>`},
+  cbox:(x,y,s)=>{const l=x-s/2,h=s*.62,d=s*.14;return `<path d="M${l} ${y}L${r2(l+d)} ${r2(y-d)}L${r2(x+s/2+d)} ${r2(y-d)}L${x+s/2} ${y}z" fill="#e0ad6c"/><path d="M${x+s/2} ${y}L${r2(x+s/2+d)} ${r2(y-d)}L${r2(x+s/2+d)} ${r2(y+h-d)}L${x+s/2} ${r2(y+h)}z" fill="#a96f35"/><rect x="${l}" y="${y}" width="${s}" height="${r2(h)}" fill="#c98a4b"/><rect x="${r2(x-s*.08)}" y="${r2(y-d*.5)}" width="${r2(s*.16)}" height="${r2(h*.35+d*.5)}" fill="#e8c48f" opacity=".9"/>`},
+  pond:(x,y,s)=>`<ellipse cx="${x}" cy="${y}" rx="${s/2}" ry="${r2(s*.15)}" fill="#5cc3f0" stroke="#3fa9db" stroke-width="1"/>`,
+  pencil:(x,y,s)=>{const l=x-s/2,h=7,t=8,e=x+s/2;return `<rect x="${l}" y="${y-h/2}" width="5" height="${h}" rx="1.5" fill="#ff8fab"/><rect x="${l+5}" y="${y-h/2}" width="2" height="${h}" fill="#c0c0c0"/><rect x="${l+7}" y="${y-h/2}" width="${s-7-t}" height="${h}" fill="#ffcc33"/><rect x="${l+7}" y="${y-h/2}" width="${s-7-t}" height="${r2(h/3)}" fill="#ffdb66"/><path d="M${e-t} ${y-h/2}L${e} ${y}L${e-t} ${y+h/2}z" fill="#f1c27d"/><path d="M${r2(e-t*.35)} ${r2(y-h*.18)}L${e} ${y}L${r2(e-t*.35)} ${r2(y+h*.18)}z" fill="#444"/>`},
+  glassfull:(x,y,s)=>glass(x,y,s,true),
+  glassempty:(x,y,s)=>glass(x,y,s,false)
+};
+const sceneParts=pic=>pic.slice(1).trim().split(/\s+/);
+function sceneSVG(pic){
+  const tk=sceneParts(pic),bg=BG[tk[0]]!=null?BG[tk.shift()]:BG.none;
+  let g='';
+  for(const t of tk){
+    const at=t.lastIndexOf('@');if(at<0)continue;
+    const what=t.slice(0,at),a=t.slice(at+1).split(','),x=+a[0],y=+a[1],s=+a[2];
+    const m=what.match(/^\[(\w+)\]$/);
+    if(m){if(PROP[m[1]])g+=PROP[m[1]](x,y,s);continue}
+    const flip=a.slice(3).includes('f')?` transform="translate(${2*x} 0) scale(-1 1)"`:'';
+    g+=`<text x="${x}" y="${y}" font-size="${s}" text-anchor="middle" dominant-baseline="central"${flip}>${what}</text>`;
+  }
+  return `<svg class="scene" viewBox="0 0 100 100" aria-hidden="true">${bg}${g}</svg>`;
+}
+const hasPic=it=>!!it.pic&&it.pic!=='-';
+function iconOf(pic){
+  if(pic[0]==='#'){const e=sceneParts(pic).find(t=>t.includes('@')&&t[0]!=='[');return e?e.slice(0,e.lastIndexOf('@')):'🎨'}
+  if(pic.startsWith('img:'))return '🖼️';
+  if(pic==='-')return '🔤';
+  return graphemes(pic).pop();
+}
+function picHTML(pic,vw,px){
+  if(pic[0]==='#')return sceneSVG(pic);
+  if(pic.startsWith('img:'))return `<img class="pimg" src="images/${encodeURIComponent(pic.slice(4))}" alt="" draggable="false">`;
+  const n=Math.min(graphemes(pic).length,6),f=[1,1.5,2,2.6,3.2,3.7][n-1];
+  // --q：在选项卡片里按卡片宽度缩放（cqw），老浏览器退回 vw/px
+  return `<span class="pic${n<=3?' nw':''}" style="font-size:min(${(vw/f).toFixed(1)}vw,${Math.round(px/f)}px);--q:${(50/f).toFixed(1)}">${pic}</span>`;
+}
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id===id));window.scrollTo(0,0)}
+let toastT;
+function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('on'),1800)}
+
+/* ================= 声音：朗读 + 音效 ================= */
+const synth=window.speechSynthesis;
+let VOICES=[],voice=null;
+const NOVELTY=/Albert|Bad News|Bahh|Bells|Boing|Bubbles|Cellos|Good News|Jester|Organ|Superstar|Trinoids|Whisper|Wobble|Zarvox|Fred|Junior|Kathy|Ralph|Rocko|Eddy|Flo|Reed|Sandy|Shelley|Grandma|Grandpa/;
+const PREF=['Samantha','Ava','Allison','Nicky','Susan','Google US English','Aria','Jenny','Zira','Karen','Moira','Daniel'];
+function loadVoices(){
+  if(!synth)return;
+  VOICES=synth.getVoices().filter(v=>/^en[-_]/i.test(v.lang)&&!NOVELTY.test(v.name));
+  voice=VOICES.find(v=>v.voiceURI===S.set.voice)||null;
+  if(!voice)for(const p of PREF){voice=VOICES.find(v=>v.name.includes(p)&&/US/i.test(v.lang))||VOICES.find(v=>v.name.includes(p));if(voice)break}
+  if(!voice)voice=VOICES.find(v=>/en[-_]US/i.test(v.lang))||VOICES[0]||null;
+}
+if(synth){loadVoices();synth.onvoiceschanged=loadVoices}
+/* 在线朗读（百度翻译 TTS）：很多国产安卓手机没有英文语音引擎，或者浏览器不支持网页朗读，就用它兜底。
+   S.set.engine：auto 先用设备语音，没有英文语音或 2 秒内没开口就自动切到在线；device / online 强制其一 */
+let deviceBad=false,wd=0,OQ=[];
+const OA=new Audio();OA.preload='auto';
+OA.onplaying=()=>{document.body.classList.add('talk');const c=OA._cb;OA._cb=null;if(c)c()};
+OA.onended=OA.onerror=()=>{document.body.classList.remove('talk');playNext()};
+function ttsURL(t,slow){const spd=slow?1:S.set.rate<.75?2:S.set.rate<.95?3:4;return `https://fanyi.baidu.com/gettts?lan=en&spd=${spd}&source=web&text=${encodeURIComponent(t)}`}
+function playNext(){const n=OQ.shift();if(!n)return;OA._cb=n.cb;OA.src=ttsURL(n.text,n.slow);const p=OA.play();if(p&&p.catch)p.catch(()=>{})}
+function speakOnline(text,slow,queue,cb){
+  if(!queue){OQ=[];OA.pause()}
+  OQ.push({text,slow,cb});
+  if(!queue||OA.paused||OA.ended)playNext();
+}
+function useOnline(){
+  if(S.set.engine==='online'||!synth)return true;
+  if(S.set.engine==='device')return false;
+  loadVoices();return deviceBad||!VOICES.length;
+}
+function stopSpeak(){clearTimeout(wd);OQ=[];OA.pause();if(synth)synth.cancel();document.body.classList.remove('talk')}
+// queue=true 时排在当前朗读后面（“认一认”页依次读几个词），onstart 用来高亮正在读的卡片
+function speak(text,slow,queue,onstart){
+  if(useOnline())return speakOnline(text,slow,queue,onstart);
+  try{
+    if(!queue){clearTimeout(wd);OQ=[];OA.pause();if(synth.speaking||synth.pending)synth.cancel()}
+    const u=new SpeechSynthesisUtterance(text);let started=false;
+    u.lang=voice?voice.lang:'en-US';if(voice)u.voice=voice;
+    u.rate=slow?Math.max(.4,S.set.rate*.6):S.set.rate;u.pitch=1.05;
+    u.onstart=()=>{started=true;document.body.classList.add('talk');if(onstart)onstart()};
+    u.onend=u.onerror=()=>document.body.classList.remove('talk');
+    synth.speak(u);
+    if(!queue&&S.set.engine!=='device')wd=setTimeout(()=>{if(!started&&!deviceBad){deviceBad=true;synth.cancel();speakOnline(text,slow,false,onstart)}},2000);
+  }catch(e){}
+}
+/* 音效：用代码合成 WAV，交给 <audio> 播放。
+   iPad 上 WebAudio 会被静音键/静音模式压掉，<audio> 走媒体通道，和朗读一样能听见 */
+try{if(navigator.audioSession)navigator.audioSession.type='playback'}catch(e){}
+function wav(notes,dur){
+  const SR=22050,n=Math.ceil(SR*dur),d=new Float32Array(n);
+  for(const [f,st,len,vol,w,f2] of notes){
+    const s0=st*SR|0,L=len*SR|0;let ph=0;
+    for(let i=0;i<L&&s0+i<n;i++){
+      ph+=(f2?f+(f2-f)*i/L:f)/SR;const x=ph%1;
+      const v=w==='sq'?(x<.5?.6:-.6):w==='tri'?4*Math.abs(x-.5)-1:Math.sin(2*Math.PI*ph);
+      d[s0+i]+=v*vol*Math.min(1,i/(SR*.008))*Math.pow(1-i/L,1.5);
+    }
+  }
+  const buf=new ArrayBuffer(44+n*2),dv=new DataView(buf),ws=(o,s)=>{for(let i=0;i<s.length;i++)dv.setUint8(o+i,s.charCodeAt(i))};
+  ws(0,'RIFF');dv.setUint32(4,36+n*2,true);ws(8,'WAVEfmt ');dv.setUint32(16,16,true);dv.setUint16(20,1,true);dv.setUint16(22,1,true);
+  dv.setUint32(24,SR,true);dv.setUint32(28,SR*2,true);dv.setUint16(32,2,true);dv.setUint16(34,16,true);ws(36,'data');dv.setUint32(40,n*2,true);
+  for(let i=0;i<n;i++)dv.setInt16(44+i*2,Math.max(-1,Math.min(1,d[i]))*32767,true);
+  return URL.createObjectURL(new Blob([buf],{type:'audio/wav'}));
+}
+const SND={
+  ok:wav([[880,0,.14,.45],[1318,.1,.32,.45]],.45),
+  bad:wav([[420,0,.2,.55,'sq',360],[260,.2,.45,.6,'sq',190]],.7),   // 明显的“嗯—哦”下降蜂鸣
+  tap:wav([[700,0,.05,.25]],.06),
+  win:wav([[523,0,.3,.35,'tri'],[659,.11,.3,.35,'tri'],[784,.22,.3,.35,'tri'],[1047,.33,.5,.4,'tri']],.9)
+};
+const AUD={};
+function sfx(k){
+  if(!S.set.sfx)return;
+  try{let a=AUD[k];if(!a)a=AUD[k]=new Audio(SND[k]);a.currentTime=0;const p=a.play();if(p&&p.catch)p.catch(()=>{})}catch(e){}
+}
+function actx(){}
+const SPK='<svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0 0 14 8v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z"/></svg>';
+
+/* ================= 首页 ================= */
+const ZZ=[0,48,72,48,0,-48,-72,-48];
+const curGi=()=>UNITS.findIndex(u=>(S.done[u.key]||0)<u.nL);
+function nodeState(u,k){
+  const d=S.done[u.key]||0;
+  if(k<d)return 'done';
+  return (u.gi===curGi()&&k===d)?'cur':'locked';
+}
+function renderHome(){
+  const fire=$('#hFire');fire.querySelector('span').textContent=S.streak;
+  const y=new Date();y.setDate(y.getDate()-1);
+  fire.classList.toggle('off',S.last!==today()&&S.last!==today(y));
+  $('#hXp').querySelector('span').textContent=S.xp;
+  let h='';
+  LEVELS.forEach(lv=>{
+    const tot=lv.units.reduce((a,u)=>a+u.nL,0),dn=lv.units.reduce((a,u)=>a+Math.min(S.done[u.key]||0,u.nL),0);
+    h+=`<section class="lvl" style="--c:${lv.c};--cd:${lv.cd}"><div class="lvh"><div><small>LEVEL ${lv.name}</small><b>${lv.title}</b></div><span>${dn} / ${tot}</span></div><div class="lvbar"><i style="width:${dn/tot*100}%"></i></div></section>`;
+    lv.units.forEach(u=>{
+      h+=`<div class="ut"><span><span class="pic">${u.icon}</span> ${esc(u.name)}</span></div><div class="nodes">`;
+      for(let k=0;k<u.nL;k++){
+        const st=nodeState(u,k),rev=k===u.chunks.length;
+        const g=rev?'🏆':iconOf(u.chunks[k][0].pic);
+        h+=`<button class="node ${st}${S.set.all&&st==='locked'?' open':''}" style="--c:${lv.c};--cd:${lv.cd};--x:${ZZ[k%ZZ.length]}px" data-g="${u.gi}" data-k="${k}" aria-label="${esc(u.name)} 第${k+1}课">${st==='cur'?'<em class="bub">开始</em>':''}<span class="pic">${g}</span></button>`;
+      }
+      h+='</div>';
+    });
+  });
+  if(curGi()<0)h+='<div class="allclear"><span class="pic">🏅</span>全部完成啦！可以点任意一课继续复习。</div>';
+  $('#path').innerHTML=h;
+  show('home');
+  const cur=$('.node.cur');
+  if(cur)setTimeout(()=>cur.scrollIntoView({block:'center'}),30);
+}
+$('#path').addEventListener('click',e=>{
+  const n=e.target.closest('.node');if(!n)return;
+  if(n.classList.contains('locked')&&!S.set.all){
+    n.classList.remove('shake');void n.offsetWidth;n.classList.add('shake');
+    toast('先完成前面的课程哦 🔒');return;
+  }
+  startLesson(+n.dataset.g,+n.dataset.k);
+});
+
+/* ================= 出题 ================= */
+// 复习权重：错得多、连对少、隔得久的更容易被抽到
+function weight(it){const s=S.stats[it.id];if(!s)return 0;const days=(Date.now()-s.t)/864e5;return (1+s.w*2)/(1+s.k)*(1+Math.min(days,7))}
+function pickReview(n,exU){
+  let pool=ALL.filter(it=>it.unit!==exU&&S.stats[it.id]).map(it=>({it,w:weight(it)*(it.unit.li===exU.li?1.6:1)}));
+  const out=[];
+  while(out.length<n&&pool.length){
+    let r=Math.random()*pool.reduce((a,b)=>a+b.w,0),i=0;
+    for(;i<pool.length-1;i++){r-=pool[i].w;if(r<=0)break}
+    out.push(pool[i].it);pool.splice(i,1);
+  }
+  return out;
+}
+function distract(it,needPic){
+  const ok=x=>x!==it&&x.text!==it.text&&(!needPic||(hasPic(x)&&x.pic!==it.pic));
+  let out=shuffle(it.unit.items.filter(ok)).slice(0,3);
+  if(out.length<3){
+    const more=shuffle(ALL.filter(x=>ok(x)&&x.unit.li===it.unit.li&&!out.includes(x)));
+    out=out.concat(more.slice(0,3-out.length));
+  }
+  return out;
+}
+/* 题型：listen 听音选图 · read 看图选句 · hear 听音选句（没图的词）· fill 选词填空 · order 连词成句
+   新内容先用最简单的题型，复习时按级别混入更难的题型 */
+const isSent=it=>/[.!?]$/.test(it.text);
+function qType(it,fresh){
+  if(fresh)return it.blank?'fill':hasPic(it)?'listen':'hear';
+  const n=it.text.split(' ').length,c=[[hasPic(it)?'listen':'hear',5]];
+  if(hasPic(it)&&it.unit.li>=1)c.push(['read',2]);
+  if(it.blank)c.push(['fill',4]);
+  if(it.unit.li>=2&&isSent(it)&&n>=3&&n<=10)c.push(['order',2]);
+  let r=Math.random()*c.reduce((a,b)=>a+b[1],0);
+  for(const [t,w] of c)if((r-=w)<=0)return t;
+  return c[0][0];
+}
+const firstQ=it=>hasPic(it)?'listen':'hear';
+function mkQ(t,it){
+  if(t==='teach')return {t,it};
+  if(t==='fill')return {t,it,opts:shuffle(it.blank.opts)};
+  if(t==='order'){
+    const w=it.text.split(/\s+/).map(x=>x.replace(/[.,!?]+$/,''));let o,g=0;
+    do{o=shuffle(w.map((_,i)=>i))}while(++g<20&&w.length>1&&o.every((v,i)=>w[v]===w[i]));
+    return {t,it,w,bank:o,placed:[]};
+  }
+  return {t,it,opts:shuffle([it].concat(distract(it,t==='listen')))};
+}
+function buildLesson(u,k){
+  const head=[];let tail=[];
+  if(k<u.chunks.length){
+    const fresh=u.chunks[k];
+    if(S.set.group){
+      // 先学后考：连着学完这几个新词 → “认一认”总览 → 再集中考
+      fresh.forEach((it,n)=>head.push({t:'teach',it,n:n+1,of:fresh.length}));
+      head.push({t:'recap',it:fresh[0],items:fresh});
+      shuffle(fresh).forEach(it=>head.push(mkQ(firstQ(it),it)));
+    }else fresh.forEach(it=>{head.push(mkQ('teach',it));head.push(mkQ(firstQ(it),it))});
+    fresh.forEach(it=>tail.push(mkQ(qType(it,true),it)));
+    shuffle(u.chunks.slice(0,k).flat()).slice(0,2).forEach(it=>tail.push(mkQ(qType(it),it)));
+    pickReview(2,u).forEach(it=>tail.push(mkQ(qType(it),it)));
+  }else{
+    u.items.forEach(it=>tail.push(mkQ(qType(it),it)));
+    pickReview(3,u).forEach(it=>tail.push(mkQ(qType(it),it)));
+  }
+  tail=shuffle(tail);
+  for(let i=1;i<tail.length;i++)if(tail[i].it===tail[i-1].it&&i+1<tail.length){[tail[i],tail[i+1]]=[tail[i+1],tail[i]]}
+  if(head.length&&tail.length>1&&tail[0].it===head[head.length-1].it)[tail[0],tail[1]]=[tail[1],tail[0]];
+  return head.concat(tail);
+}
+function record(it,right){
+  const s=S.stats[it.id]||(S.stats[it.id]={c:0,w:0,k:0,t:0});
+  s.t=Date.now();
+  if(right===true){s.c++;s.k++}else if(right===false){s.w++;s.k=0}
+}
+
+/* ================= 课程流程 ================= */
+let LS=null;
+function startLesson(gi,k){
+  actx();
+  const u=UNITS[gi];
+  LS={u,k,q:buildLesson(u,k),i:0,ok:0,bad:0,combo:0,best:0,re:new Set(),sel:null,ans:false,cur:curGi()};
+  show('lesson');renderQ();
+}
+function setBar(){$('#lBar').style.width=(LS.i/LS.q.length*100)+'%'}
+const SAY=`<button class="spk" data-say aria-label="再听一遍">${SPK}</button><button class="spk slow" data-slow aria-label="慢速">🐢</button>`;
+const textHTML=it=>it.blank?esc(it.blank.pre)+'<mark>'+esc(it.blank.answer)+'</mark>'+esc(it.blank.post):esc(it.text);
+function renderQ(){
+  const q=LS.q[LS.i],it=q.it;LS.sel=null;LS.ans=false;
+  setBar();
+  $('#lCombo').textContent=LS.combo>=2?'🔥 '+LS.combo:'';
+  $('#lFoot').className='foot';$('#lFb').innerHTML='';
+  const main=$('#lMain');
+  main.textContent='检查';main.disabled=true;
+  let h='';
+  if(q.t==='teach'){
+    const kind=isSent(it)?'新句子':it.text.includes(' ')?'新短语':'新单词';
+    h=`<span class="badge">✨ ${kind} NEW${q.of?` · 学一学 ${q.n}/${q.of}`:''}</span>
+      <div class="teach">${hasPic(it)?`<div class="card">${picHTML(it.pic,34,150)}</div>`:''}
+      <div class="ttext"><button class="spk" data-say>${SPK}</button><span>${textHTML(it)}</span><button class="spk slow" data-slow>🐢</button></div>
+      <div class="zh">${esc(it.zh)}</div></div>`;
+    main.textContent='继续';main.disabled=false;
+    record(it,null);
+  }else if(q.t==='recap'){
+    h=`<span class="badge">👀 认一认：点卡片再听一遍</span>
+      <div class="rgrid">${q.items.map((o,i)=>`<button class="rcard" data-r="${i}">${hasPic(o)?picHTML(o.pic,16,80):''}<b>${esc(o.text)}</b><small>${esc(o.zh)}</small></button>`).join('')}</div>`;
+    main.textContent='开始考一考 🎯';main.disabled=false;
+  }else if(q.t==='listen'){
+    h=`<h2>听一听，选出正确的图片</h2>
+      <div class="say">${SAY}<div class="sent${S.set.text?'':' hide'}" data-say>${S.set.text?esc(it.text):'🎧 仔细听…'}</div></div>
+      <div class="grid">${q.opts.map((o,i)=>`<button class="opt" data-i="${i}"><span class="n">${i+1}</span>${picHTML(o.pic,24,130)}</button>`).join('')}</div>`;
+  }else if(q.t==='read'||q.t==='hear'){
+    h=(q.t==='read'?`<h2>这张图说的是哪一句？</h2><div class="bigpic">${picHTML(it.pic,26,120)}</div>`
+                   :`<h2>听一听，选出你听到的句子</h2><div class="say">${SAY}</div>`)+
+      `<div class="tlist">${q.opts.map((o,i)=>`<button class="topt" data-i="${i}"><span class="n">${i+1}</span>${esc(o.text)}</button>`).join('')}</div>`;
+  }else if(q.t==='fill'){
+    h=`<h2>听一听，选出空格里的词</h2>
+      <div class="say">${SAY}</div>${hasPic(it)?`<div class="bigpic">${picHTML(it.pic,26,120)}</div>`:''}
+      <div class="fsent">${esc(it.blank.pre)}<span class="blank" id="fBlank">&nbsp;</span>${esc(it.blank.post)}</div>
+      <div class="chips">${q.opts.map((w,i)=>`<button class="chip-w" data-i="${i}">${esc(w)}</button>`).join('')}</div>`;
+  }else{
+    h=`<h2>听一听，把单词排成句子</h2><div class="say">${SAY}</div><div class="ans" id="oAns"></div><div class="bank" id="oBank"></div>`;
+  }
+  $('#lBody').innerHTML=h;
+  if(q.t==='order')renderOrder();
+  if(q.t==='recap')q.items.forEach((o,i)=>speak(o.text,false,i>0,()=>litCard(i)));
+  else if(q.t!=='read')speak(it.text);
+}
+function litCard(i){document.querySelectorAll('.rcard').forEach((c,j)=>c.classList.toggle('talking',j===i))}
+function renderOrder(){
+  const q=LS.q[LS.i];
+  $('#oAns').innerHTML=q.placed.map((wi,p)=>`<button class="wt" data-a="${p}">${esc(q.w[wi])}</button>`).join('');
+  $('#oBank').innerHTML=q.bank.map(wi=>`<button class="wt${q.placed.includes(wi)?' used':''}" data-b="${wi}">${esc(q.w[wi])}</button>`).join('');
+  $('#lMain').disabled=q.placed.length!==q.w.length;
+}
+function select(i){
+  const q=LS.q[LS.i];if(LS.ans||!q.opts||i>=q.opts.length)return;
+  LS.sel=i;sfx('tap');
+  document.querySelectorAll('.opt,.topt,.chip-w').forEach((b,j)=>b.classList.toggle('sel',j===i));
+  if(q.t==='read')speak(q.opts[i].text);
+  if(q.t==='fill')$('#fBlank').textContent=q.opts[i];
+  $('#lMain').disabled=false;
+}
+function pop(){
+  const p=document.createElement('div');p.className='pop';p.textContent='Amazing!';document.body.appendChild(p);
+  const em=['⭐','🎉','✨','🌟','💖','🎈'];
+  for(let i=0;i<14;i++){
+    const c=document.createElement('div');c.className='conf';c.textContent=em[i%em.length];
+    const a=Math.PI*2*i/14+Math.random()*.4,r=120+Math.random()*90;
+    c.style.setProperty('--dx',Math.cos(a)*r+'px');c.style.setProperty('--dy',Math.sin(a)*r+'px');c.style.setProperty('--r',(Math.random()*360|0)+'deg');
+    document.body.appendChild(c);setTimeout(()=>c.remove(),1100);
+  }
+  setTimeout(()=>p.remove(),1200);
+}
+function check(){
+  const q=LS.q[LS.i],it=q.it;
+  const isAns=o=>q.t==='fill'?o===it.blank.answer:o===it;
+  const right=q.t==='order'?q.placed.map(i=>q.w[i]).join(' ')===q.w.join(' '):isAns(q.opts[LS.sel]);
+  LS.ans=true;record(it,right);
+  if(q.t==='order'){$('#oAns').classList.add(right?'right':'wrong');$('#oBank').querySelectorAll('.wt').forEach(b=>b.disabled=true)}
+  else document.querySelectorAll('.opt,.topt,.chip-w').forEach((b,j)=>{
+    b.classList.remove('sel');
+    if(isAns(q.opts[j]))b.classList.add('right');else if(j===LS.sel)b.classList.add('wrong');
+  });
+  if(q.t==='fill'){const b=$('#fBlank');b.textContent=it.blank.answer;b.classList.add(right?'ok':'no')}
+  LS.i++;setBar();LS.i--;
+  const foot=$('#lFoot'),fb=$('#lFb'),main=$('#lMain');
+  if(right){
+    LS.ok++;LS.combo++;LS.best=Math.max(LS.best,LS.combo);
+    sfx('ok');pop();speak('Amazing!');
+    foot.className='foot ok';
+    fb.innerHTML=`<div class="face">🐼</div><div><b>Amazing! 🎉</b><p>${esc(it.text)} <span>${esc(it.zh)}</span>${LS.combo>=3?' · 🔥 连对 '+LS.combo+' 题':''}</p></div>`;
+  }else{
+    LS.bad++;LS.combo=0;
+    sfx('bad');stopSpeak();
+    setTimeout(()=>{if(LS&&LS.ans&&LS.q[LS.i].it===it)speak(it.text)},750);   // 先让错误提示音响完，再读正确答案
+    foot.className='foot bad';
+    fb.innerHTML=`<div class="face">🤔</div><div><b>正确答案：</b><p>${esc(it.text)} <span>${esc(it.zh)}</span></p></div>`;
+    if(!LS.re.has(it.id)){LS.re.add(it.id);LS.q.push(mkQ(q.t,it))}   // 做错的题放到最后再考一次
+  }
+  $('#lCombo').textContent=LS.combo>=2?'🔥 '+LS.combo:'';
+  main.textContent='继续';main.disabled=false;
+}
+function next(){LS.i++;if(LS.i>=LS.q.length)finish();else renderQ()}
+$('#lMain').addEventListener('click',()=>{
+  if(!LS)return;const q=LS.q[LS.i];
+  if(q.t==='teach'||q.t==='recap'||LS.ans)next();
+  else if(q.t==='order'?q.placed.length===q.w.length:LS.sel!=null)check();
+});
+$('#lBody').addEventListener('click',e=>{
+  if(!LS)return;const q=LS.q[LS.i],it=q.it;
+  const o=e.target.closest('[data-i]');if(o){select(+o.dataset.i);return}
+  const rc=e.target.closest('[data-r]');if(rc){const i=+rc.dataset.r;speak(q.items[i].text,false,false,()=>litCard(i));return}
+  const b=e.target.closest('[data-b]'),a=e.target.closest('[data-a]');
+  if((a||b)&&q.t==='order'&&!LS.ans){
+    if(b){const wi=+b.dataset.b;if(!q.placed.includes(wi)){q.placed.push(wi);sfx('tap');speak(q.w[wi])}}
+    else q.placed.splice(+a.dataset.a,1);
+    renderOrder();return;
+  }
+  if(e.target.closest('[data-slow]')){speak(it.text,true);return}
+  if(e.target.closest('[data-say]')){
+    if(q.t==='read'&&!LS.ans)return;
+    speak(it.text);
+  }
+});
+$('#lQuit').addEventListener('click',()=>{
+  modal(`<h3>要退出这节课吗？</h3><p>退出后这节课的进度不会保存哦。</p>
+    <div class="btns"><button class="btn ghost" data-close>继续学习</button><button class="btn red" id="mQuit">退出</button></div>`);
+  $('#mQuit').onclick=()=>{closeModal();stopSpeak();LS=null;renderHome()};
+});
+function finish(){
+  const n=LS.ok+LS.bad,acc=n?Math.round(LS.ok/n*100):100;
+  const xp=10+LS.ok;S.xp+=xp;
+  const key=LS.u.key;if((S.done[key]||0)<=LS.k)S.done[key]=LS.k+1;
+  const t=today(),y=new Date();y.setDate(y.getDate()-1);
+  if(S.last!==t){S.streak=S.last===today(y)?S.streak+1:1;S.last=t}
+  save();
+  const nc=curGi(),before=LS.cur>=0?UNITS[LS.cur].li:-1,after=nc>=0?UNITS[nc].li:LEVELS.length;
+  const lvup=after>before&&before>=0;
+  const stars=acc>=90?3:acc>=70?2:1;
+  $('#lBar').style.width='100%';
+  sfx('win');speak(lvup?'Level up! You are amazing!':'Great job!');
+  $('#fBody').innerHTML=`<div class="hero">${lvup?'🏆':'🐼'}</div>
+    <h1>${lvup?'升级啦！':'课程完成！'}</h1>
+    ${lvup?`<div class="lvup">${after<LEVELS.length?'解锁 LEVEL '+LEVELS[after].name+' · '+LEVELS[after].title:'所有级别都完成了！'}</div>`:''}
+    <div class="stars">${[0,1,2].map(i=>`<span class="${i<stars?'':'off'}">⭐</span>`).join('')}</div>
+    <div class="tiles">
+      <div class="tile" style="--tc:#ffc800"><b>获得经验</b><span>⭐ +${xp}</span></div>
+      <div class="tile" style="--tc:#58cc02"><b>正确率</b><span>🎯 ${acc}%</span></div>
+      <div class="tile" style="--tc:#ff9600"><b>最多连对</b><span>🔥 ${LS.best}</span></div>
+    </div>`;
+  LS=null;show('finish');
+}
+$('#fNext').addEventListener('click',()=>{stopSpeak();renderHome()});
+
+/* 键盘：1-4 选择，回车 检查/继续，空格 重听 */
+document.addEventListener('keydown',e=>{
+  if($('#modal').classList.contains('on')){if(e.key==='Escape')closeModal();return}
+  if($('#finish').classList.contains('on')&&e.key==='Enter'){$('#fNext').click();return}
+  if(!LS||!$('#lesson').classList.contains('on'))return;
+  if(e.key>='1'&&e.key<='4')select(+e.key-1);
+  else if(e.key==='Enter'){e.preventDefault();$('#lMain').click()}
+  else if(e.key===' '){e.preventDefault();const q=LS.q[LS.i];if(q.t!=='read'||LS.ans)speak(q.it.text)}
+});
+
+/* ================= 弹窗 / 设置 ================= */
+function modal(html){const m=$('#modal');m.innerHTML=`<div class="sheet">${html}</div>`;m.classList.add('on')}
+function closeModal(){$('#modal').classList.remove('on')}
+$('#modal').addEventListener('click',e=>{if(e.target.id==='modal'||e.target.closest('[data-close]'))closeModal()});
+
+function openSettings(){
+  loadVoices();
+  const vopts=VOICES.map(v=>`<option value="${esc(v.voiceURI)}"${voice&&v.voiceURI===voice.voiceURI?' selected':''}>${esc(v.name)} (${esc(v.lang)})</option>`).join('');
+  modal(`<h3>⚙️ 设置</h3>
+    <div class="row"><div>朗读方式<small>${VOICES.length?'这台设备有 '+VOICES.length+' 个英文语音':'这台设备没有英文语音，会用在线朗读'}${deviceBad?'（设备语音没反应，已切到在线）':''}</small></div>
+      <select id="sEngine"><option value="auto">自动</option><option value="device">设备语音</option><option value="online">在线朗读（需联网）</option></select></div>
+    <div class="row"><div>设备语音<small>iPad 推荐 Samantha</small></div><select id="sVoice">${vopts||'<option>（没有找到英文语音）</option>'}</select></div>
+    <div class="row"><div>语速<small id="sRateV">${S.set.rate.toFixed(2)}</small></div><input type="range" id="sRate" min="0.55" max="1.1" step="0.05" value="${S.set.rate}"></div>
+    <div class="row"><div>题目显示英文<small>关掉就是纯听力练习</small></div><button class="sw${S.set.text?' on':''}" data-k="text"></button></div>
+    <div class="row"><div>先学后考<small>开：先连着学完新词再集中考；关：学一个考一个</small></div><button class="sw${S.set.group?' on':''}" data-k="group"></button></div>
+    <div class="row"><div>音效</div><button class="sw${S.set.sfx?' on':''}" data-k="sfx"></button></div>
+    <div class="row"><div>家长模式：解锁全部<small>可以点任意一课</small></div><button class="sw${S.set.all?' on':''}" data-k="all"></button></div>
+    <div class="row"><div>从某个级别开始<small>前面的级别会标记为已完成</small></div><select id="sJump">${LEVELS.map((l,i)=>`<option value="${i}">LEVEL ${l.name}</option>`).join('')}</select></div>
+    <div class="btns"><button class="btn ghost" id="sTest">🔊 试听</button><button class="btn ghost" id="sJumpGo">跳到该级别</button></div>
+    <div class="btns"><button class="btn red" id="sReset">重置所有进度</button><button class="btn" data-close>完成</button></div>
+    <div class="ver">熊猫英语 v${VERSION} · 进度保存在这台设备的浏览器里</div>`);
+  $('#sEngine').value=S.set.engine;
+  $('#sEngine').onchange=e=>{S.set.engine=e.target.value;deviceBad=false;save();speak('Hello! Let\'s learn English.')};
+  $('#sVoice').onchange=e=>{S.set.voice=e.target.value;save();loadVoices();speak('Hello! Let\'s learn English.')};
+  $('#sRate').oninput=e=>{S.set.rate=+e.target.value;$('#sRateV').textContent=S.set.rate.toFixed(2);save()};
+  $('#sRate').onchange=()=>speak('I like apples.');
+  document.querySelectorAll('.sw').forEach(b=>b.onclick=()=>{const k=b.dataset.k;S.set[k]=!S.set[k];b.classList.toggle('on',S.set[k]);save();if(k==='all')renderHome()});
+  $('#sTest').onclick=()=>{actx();speak('Hello! I see a cat. Amazing!')};
+  $('#sJumpGo').onclick=()=>{
+    const li=+$('#sJump').value;
+    UNITS.forEach(u=>{if(u.li<li)S.done[u.key]=u.nL});
+    save();closeModal();renderHome();toast('已跳到 LEVEL '+LEVELS[li].name);
+  };
+  let armed=false;
+  $('#sReset').onclick=e=>{
+    if(!armed){armed=true;e.target.textContent='再点一次确认';return}
+    const set=S.set;S=Object.assign({},DEF,{done:{},stats:{},set});save();closeModal();renderHome();toast('进度已重置');
+  };
+}
+$('#hSet').addEventListener('click',openSettings);
+
+renderHome();
+window.__E={S,LEVELS,UNITS,ALL,buildLesson,startLesson};
+</script>
+</body>
+</html>
