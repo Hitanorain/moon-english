@@ -58,7 +58,7 @@ button{font:inherit;color:inherit;cursor:pointer;-webkit-appearance:none;appeara
 .lvtab:active{transform:translateY(2px)}
 .ut{display:flex;align-items:center;gap:12px;color:var(--muted);font-weight:800;font-size:16px;margin:26px 0 4px}
 .ut::before,.ut::after{content:"";flex:1;height:2px;background:var(--line)}
-.nodes{display:flex;flex-direction:column;align-items:center;gap:20px;padding-top:44px}
+.nodes{display:flex;flex-direction:column;align-items:center;gap:20px;padding-top:12px}
 .node{position:relative;width:76px;height:70px;border-radius:50%;border:0;background:var(--c);box-shadow:0 7px 0 var(--cd);
   transform:translateX(var(--x));display:flex;align-items:center;justify-content:center;transition:transform .08s,box-shadow .08s}
 .node .pic{font-size:34px}
@@ -70,10 +70,10 @@ button{font:inherit;color:inherit;cursor:pointer;-webkit-appearance:none;appeara
   background:#ffc800;color:#fff;font-weight:900;font-size:16px;display:flex;align-items:center;justify-content:center;border:3px solid #fff}
 .node.cur::before{content:"";position:absolute;inset:-9px;border-radius:50%;border:5px solid var(--c);opacity:.35;animation:ring 1.6s infinite}
 @keyframes ring{0%{transform:scale(.92);opacity:.5}70%{transform:scale(1.12);opacity:0}100%{opacity:0}}
-.bub{position:absolute;bottom:calc(100% + 14px);left:50%;transform:translateX(-50%);background:#fff;color:var(--c);
+.bub{position:absolute;right:calc(100% + 14px);top:50%;transform:translateY(-50%);background:#fff;color:var(--c);
   border:2px solid var(--line);border-radius:12px;padding:6px 14px;font-style:normal;font-weight:900;font-size:16px;white-space:nowrap;animation:bob 1.2s ease-in-out infinite}
-.bub::after{content:"";position:absolute;top:100%;left:50%;margin-left:-8px;border:8px solid transparent;border-top-color:#fff}
-@keyframes bob{50%{transform:translateX(-50%) translateY(-5px)}}
+.bub::after{content:"";position:absolute;left:100%;top:50%;margin-top:-8px;border:8px solid transparent;border-left-color:#fff}
+@keyframes bob{50%{transform:translateY(-50%) translateX(-5px)}}
 .allclear{text-align:center;margin:40px 0;color:var(--muted);font-weight:800}
 .allclear .pic{font-size:64px;display:block}
 .shake{animation:shake .35s}
@@ -260,7 +260,7 @@ mark{background:#fff3b0;color:inherit;border-radius:6px;padding:0 4px}
 
 <script>
 'use strict';
-const VERSION='1.5';
+const VERSION='2.0';
 const KEY='moon-english-v1';
 
 /* ================= 课程内容 =================
@@ -276,7 +276,7 @@ const U=(name,icon,src)=>({name,icon,items:src.trim().split('\n').map(l=>{
   return it;
 })});
 const LEVELS=[
-{id:'aa',name:'AA',title:'第一批单词',c:'#58cc02',cd:'#58a700',units:[
+{id:'aa',name:'AA',title:'单词和短语',c:'#58cc02',cd:'#58a700',units:[
 U('动物 Animals','🐾',`
 cat|🐱|猫
 dog|🐶|狗
@@ -289,68 +289,33 @@ rabbit|🐰|兔子
 bear|🐻|熊
 frog|🐸|青蛙
 fox|🦊|狐狸
-owl|🦉|猫头鹰`),
-U('食物 Food','🍎',`
+owl|🦉|猫头鹰
+horse|🐴|马
+sheep|🐑|绵羊
+mouse|🐭|老鼠
+chicken|🐔|鸡`),
+U('食物 Food','🍞',`
+milk|🥛|牛奶
+egg|🥚|鸡蛋
+bread|🍞|面包
+rice|🍚|米饭
+noodles|🍜|面条
+soup|🍲|汤
+cake|🍰|蛋糕
+ice cream|🍦|冰淇淋
+cookie|🍪|饼干
+pizza|🍕|披萨
+cheese|🧀|奶酪
+juice|🧃|果汁
+hamburger|🍔|汉堡
+hot dog|🌭|热狗
+sandwich|🥪|三明治
+donut|🍩|甜甜圈`),
+U('水果 Fruits','🍎',`
 apple|🍎|苹果
 banana|🍌|香蕉
 grapes|🍇|葡萄
 orange|🍊|橙子
-milk|🥛|牛奶
-egg|🥚|鸡蛋
-cake|🍰|蛋糕
-bread|🍞|面包
-ice cream|🍦|冰淇淋
-rice|🍚|米饭
-noodles|🍜|面条
-soup|🍲|汤`),
-U('颜色 Colors','🎨',`
-red|#none [dot=e53935]@50,50,62|红色
-blue|#none [dot=1e88e5]@50,50,62|蓝色
-green|#none [dot=43a047]@50,50,62|绿色
-yellow|#none [dot=fdd835]@50,50,62|黄色
-black|#none [dot=212121]@50,50,62|黑色
-white|#none [dot=ffffff]@50,50,62|白色
-purple|#none [dot=8e24aa]@50,50,62|紫色
-brown|#none [dot=795548]@50,50,62|棕色
-pink|#none [dot=f48fb1]@50,50,62|粉色
-gray|#none [dot=9e9e9e]@50,50,62|灰色`),
-U('数字 Numbers','🔢',`
-zero|0️⃣|零
-one|1️⃣|一
-two|2️⃣|二
-three|3️⃣|三
-four|4️⃣|四
-five|5️⃣|五
-six|6️⃣|六
-seven|7️⃣|七
-eight|8️⃣|八
-nine|9️⃣|九
-ten|🔟|十`),
-U('身体 Body','✋',`
-eye|👁️|眼睛
-ear|👂|耳朵
-nose|👃|鼻子
-mouth|👄|嘴巴
-hand|✋|手
-foot|🦶|脚
-leg|🦵|腿
-tooth|🦷|牙齿
-arm|💪|手臂
-finger|☝️|手指
-tongue|👅|舌头
-bone|🦴|骨头`),
-U('家人 Family','👪',`
-mom|👩|妈妈
-dad|👨|爸爸
-baby|👶|宝宝
-boy|👦|男孩
-girl|👧|女孩
-grandma|👵|奶奶
-grandpa|👴|爷爷
-kid|🧒|小孩
-friend|🧑‍🤝‍🧑|朋友
-family|👨‍👩‍👧‍👦|一家人`),
-U('水果 Fruits','🍓',`
 strawberry|🍓|草莓
 watermelon|🍉|西瓜
 pear|🍐|梨
@@ -361,9 +326,77 @@ pineapple|🍍|菠萝
 mango|🥭|芒果
 kiwi|🥝|猕猴桃
 coconut|🥥|椰子
-blueberries|🫐|蓝莓
-avocado|🥑|牛油果`),
+blueberries|🫐|蓝莓`),
+U('颜色和形状 Colors & Shapes','🎨',`
+red|#none [dot=e53935]@50,50,62|红色
+blue|#none [dot=1e88e5]@50,50,62|蓝色
+green|#none [dot=43a047]@50,50,62|绿色
+yellow|#none [dot=fdd835]@50,50,62|黄色
+orange|#none [dot=fb8c00]@50,50,62|橙色
+pink|#none [dot=f48fb1]@50,50,62|粉色
+purple|#none [dot=8e24aa]@50,50,62|紫色
+brown|#none [dot=795548]@50,50,62|棕色
+black|#none [dot=212121]@50,50,62|黑色
+white|#none [dot=ffffff]@50,50,62|白色
+circle|#none [circle]@50,50,62|圆形
+square|#none [square]@50,50,64|正方形
+triangle|#none [triangle]@50,52,70|三角形
+rectangle|#none [rectangle]@50,50,78|长方形
+star|#none [star]@50,52,74|星形
+heart|#none [heart]@50,52,72|心形`),
+U('数字 Numbers','🔢',`
+zero|#none [num=0]@50,50,64|零
+one|#none [num=1]@50,50,64|一
+two|#none [num=2]@50,50,64|二
+three|#none [num=3]@50,50,64|三
+four|#none [num=4]@50,50,64|四
+five|#none [num=5]@50,50,64|五
+six|#none [num=6]@50,50,64|六
+seven|#none [num=7]@50,50,64|七
+eight|#none [num=8]@50,50,64|八
+nine|#none [num=9]@50,50,64|九
+ten|#none [num=10]@50,50,64|十
+eleven|#none [num=11]@50,50,64|十一
+twelve|#none [num=12]@50,50,64|十二
+thirteen|#none [num=13]@50,50,64|十三
+fourteen|#none [num=14]@50,50,64|十四
+fifteen|#none [num=15]@50,50,64|十五`),
+U('身体 Body','✋',`
+eye|👁️|眼睛
+ear|👂|耳朵
+nose|👃|鼻子
+mouth|👄|嘴巴
+face|🙂|脸
+hair|💇|头发
+hand|✋|手
+arm|💪|手臂
+finger|☝️|手指
+leg|🦵|腿
+foot|🦶|脚
+tooth|🦷|牙齿
+tongue|👅|舌头
+bone|🦴|骨头
+brain|🧠|大脑`),
+U('人物 People','👪',`
+mom|👩|妈妈
+dad|👨|爸爸
+baby|👶|宝宝
+boy|👦|男孩
+girl|👧|女孩
+grandma|👵|奶奶
+grandpa|👴|爷爷
+friend|🧑‍🤝‍🧑|朋友
+family|👨‍👩‍👧‍👦|一家人
+teacher|🧑‍🏫|老师
+doctor|🧑‍⚕️|医生
+police officer|👮|警察
+firefighter|🧑‍🚒|消防员
+farmer|🧑‍🌾|农民
+cook|🧑‍🍳|厨师
+pilot|🧑‍✈️|飞行员`),
 U('玩具 Toys','🧸',`
+ball|⚽|球
+doll|🪆|娃娃
 teddy bear|🧸|泰迪熊
 kite|🪁|风筝
 balloon|🎈|气球
@@ -371,87 +404,43 @@ robot|🤖|机器人
 drum|🥁|鼓
 puzzle|🧩|拼图
 yo-yo|🪀|悠悠球
-doll|🪆|娃娃
-ball|⚽|球
 blocks|🧱|积木
 dice|🎲|骰子
-game|🎮|游戏`),
+game|🎮|游戏
+toy car|🏎️|玩具汽车
+toy train|🚂|玩具火车`),
 U('衣服 Clothes','👕',`
 shirt|👕|衬衫
 pants|👖|裤子
+shorts|🩳|短裤
 dress|👗|裙子
-socks|🧦|袜子
 coat|🧥|外套
+hat|👒|帽子
+cap|🧢|棒球帽
+socks|🧦|袜子
+shoes|👞|鞋子
+sneakers|👟|运动鞋
 boots|👢|靴子
 gloves|🧤|手套
 scarf|🧣|围巾
-cap|🧢|棒球帽
 glasses|👓|眼镜
-hat|👒|帽子
-shoes|👞|鞋子`),
-U('农场 Farm','🐔',`
-horse|🐴|马
-sheep|🐑|绵羊
-goat|🐐|山羊
-chicken|🐔|鸡
-chick|🐤|小鸡
-rooster|🐓|公鸡
-turkey|🦃|火鸡
-mouse|🐭|老鼠
-llama|🦙|羊驼
-ox|🐂|公牛
-ram|🐏|公羊
-tractor|🚜|拖拉机`),
-U('心情 Feelings','😀',`
-happy|😀|开心
-sad|😢|难过
-angry|😠|生气
-scared|😱|害怕
-sleepy|😴|困
-silly|🤪|调皮
-surprised|😮|惊讶
-sick|🤒|生病
-tired|😫|累
-shy|😳|害羞
-hot|🥵|热
-cold|🥶|冷`),
+bag|👜|包`),
 U('交通工具 Vehicles','🚗',`
 car|🚗|汽车
 bus|🚌|公交车
 train|🚆|火车
 plane|✈️|飞机
 boat|⛵|帆船
+ship|🚢|轮船
 bike|🚲|自行车
 truck|🚚|卡车
 taxi|🚕|出租车
 helicopter|🚁|直升机
 rocket|🚀|火箭
-ship|🚢|轮船
-motorcycle|🏍️|摩托车`),
-U('形状 Shapes','🔺',`
-circle|#none [circle]@50,50,64|圆形
-square|#none [square]@50,50,64|正方形
-triangle|#none [triangle]@50,52,70|三角形
-rectangle|#none [rectangle]@50,50,78|长方形
-oval|#none [oval]@50,50,74|椭圆形
-star|#none [star]@50,52,74|星形
-heart|#none [heart]@50,52,72|心形
-diamond|#none [diamond]@50,50,66|菱形
-pentagon|#none [pentagon]@50,52,68|五边形
-hexagon|#none [hexagon]@50,50,68|六边形`),
-U('动物园 Zoo','🦁',`
-lion|🦁|狮子
-tiger|🐯|老虎
-elephant|🐘|大象
-monkey|🐵|猴子
-giraffe|🦒|长颈鹿
-zebra|🦓|斑马
-panda|🐼|熊猫
-hippo|🦛|河马
-kangaroo|🦘|袋鼠
-snake|🐍|蛇
-gorilla|🦍|大猩猩
-rhino|🦏|犀牛`),
+motorcycle|🏍️|摩托车
+ambulance|🚑|救护车
+fire truck|🚒|消防车
+police car|🚓|警车`),
 U('蔬菜 Vegetables','🥕',`
 carrot|🥕|胡萝卜
 corn|🌽|玉米
@@ -464,84 +453,59 @@ cucumber|🥒|黄瓜
 lettuce|🥬|生菜
 garlic|🧄|大蒜
 pepper|🌶️|辣椒
-sweet potato|🍠|红薯`),
-U('零食 Snacks','🍕',`
-pizza|🍕|披萨
-cookie|🍪|饼干
-candy|🍬|糖果
-cheese|🧀|奶酪
-hamburger|🍔|汉堡
-hot dog|🌭|热狗
-sandwich|🥪|三明治
-donut|🍩|甜甜圈
-popcorn|🍿|爆米花
-juice|🧃|果汁
-fries|🍟|薯条
-cupcake|🧁|纸杯蛋糕`),
+sweet potato|🍠|红薯
+avocado|🥑|牛油果
+eggplant|🍆|茄子
+peanuts|🥜|花生`),
 U('家里 House','🏠',`
 house|🏠|房子
+door|🚪|门
 window|🪟|窗户
-sofa|🛋️|沙发
-light|💡|灯
-bathtub|🛁|浴缸
-toilet|🚽|马桶
-TV|📺|电视
-key|🔑|钥匙
-phone|📱|手机
 bed|🛏️|床
 chair|🪑|椅子
-door|🚪|门`),
+sofa|🛋️|沙发
+light|💡|灯
+TV|📺|电视
+phone|📱|手机
+key|🔑|钥匙
+clock|⏰|钟
+box|📦|箱子
+mirror|🪞|镜子
+bathtub|🛁|浴缸
+toilet|🚽|马桶
+soap|🧼|肥皂`),
 U('学校 School','🏫',`
+school|🏫|学校
+book|📖|书
 pencil|✏️|铅笔
+pen|🖊️|钢笔
 crayon|🖍️|蜡笔
+paper|📄|纸
 ruler|📏|尺子
 scissors|✂️|剪刀
 backpack|🎒|书包
-books|📚|书
-pen|🖊️|钢笔
-paper|📄|纸
-teacher|🧑‍🏫|老师
-school|🏫|学校
+notebook|📓|笔记本
 computer|💻|电脑
-notebook|📓|笔记本`),
+map|🗺️|地图
+globe|🌍|地球仪
+bell|🔔|铃
+paints|🎨|颜料`),
 U('天气 Weather','⛅',`
 sun|☀️|太阳
+moon|🌙|月亮
+star|⭐|星星
+cloud|☁️|云
 rain|🌧️|雨
 snow|❄️|雪
 wind|🌬️|风
-cloud|☁️|云
 rainbow|🌈|彩虹
 storm|⛈️|暴风雨
 fog|🌫️|雾
 lightning|⚡|闪电
 tornado|🌪️|龙卷风
 umbrella|☂️|雨伞
-ice|🧊|冰`),
-U('小虫子 Bugs','🐞',`
-bee|🐝|蜜蜂
-ant|🐜|蚂蚁
-butterfly|🦋|蝴蝶
-ladybug|🐞|瓢虫
-snail|🐌|蜗牛
-spider|🕷️|蜘蛛
-caterpillar|🐛|毛毛虫
-worm|🪱|虫子
-fly|🪰|苍蝇
-cricket|🦗|蟋蟀
-mosquito|🦟|蚊子`),
-U('海洋 Sea','🐳',`
-whale|🐳|鲸鱼
-dolphin|🐬|海豚
-shark|🦈|鲨鱼
-octopus|🐙|章鱼
-crab|🦀|螃蟹
-turtle|🐢|乌龟
-shrimp|🦐|虾
-seal|🦭|海豹
-shell|🐚|贝壳
-penguin|🐧|企鹅
-squid|🦑|鱿鱼
-lobster|🦞|龙虾`),
+ice|🧊|冰
+snowman|⛄|雪人`),
 U('大自然 Nature','🌳',`
 tree|🌳|树
 flower|🌸|花
@@ -554,198 +518,146 @@ island|🏝️|小岛
 desert|🏜️|沙漠
 sea|🌊|大海
 beach|🏖️|海滩
-forest|🌲|森林`),
-U('动作 Actions','👏',`
-clap|👏|拍手
-wave|👋|挥手
-read|📖|读
-write|✍️|写
-paint|🎨|画画
-climb|🧗|爬
-ride|🚴|骑
-stand|🧍|站
-hug|🤗|拥抱
-think|🤔|想
-talk|🗣️|说话
-look|👀|看`),
-U('厨房 Kitchen','🥄',`
-spoon|🥄|勺子
-fork|🍴|叉子
-knife|🔪|刀
-bowl|🥣|碗
-plate|🍽️|盘子
-chopsticks|🥢|筷子
-cup|🥤|杯子
-mug|☕|马克杯
-teapot|🫖|茶壶
-pan|🍳|平底锅
-bottle|🍼|奶瓶
-salt|🧂|盐`),
-U('更多食物 More food','🥞',`
-pancake|🥞|煎饼
-waffle|🧇|华夫饼
-bacon|🥓|培根
-honey|🍯|蜂蜜
-butter|🧈|黄油
-salad|🥗|沙拉
-meat|🍖|肉
-dumplings|🥟|饺子
-sushi|🍣|寿司
-taco|🌮|墨西哥卷饼
-spaghetti|🍝|意大利面
-tea|🍵|茶`),
-U('运动 Sports','🏀',`
-soccer|⚽|足球
-basketball|🏀|篮球
-baseball|⚾|棒球
-football|🏈|橄榄球
-tennis|🎾|网球
-golf|⛳|高尔夫
-bowling|🎳|保龄球
-volleyball|🏐|排球
-hockey|🏒|冰球
-boxing|🥊|拳击
-skateboard|🛹|滑板
-trophy|🏆|奖杯`),
-U('音乐和娱乐 Music & fun','🎸',`
-guitar|🎸|吉他
-piano|🎹|钢琴
-violin|🎻|小提琴
-trumpet|🎺|小号
-saxophone|🎷|萨克斯
-microphone|🎤|麦克风
-headphones|🎧|耳机
-radio|📻|收音机
-banjo|🪕|班卓琴
-camera|📷|相机
-movie|🎬|电影
-music|🎵|音乐`),
-U('职业 Jobs','🧑‍⚕️',`
-doctor|🧑‍⚕️|医生
-police officer|👮|警察
-firefighter|🧑‍🚒|消防员
-farmer|🧑‍🌾|农民
-cook|🧑‍🍳|厨师
-pilot|🧑‍✈️|飞行员
-artist|🧑‍🎨|画家
-singer|🧑‍🎤|歌手
-astronaut|🧑‍🚀|宇航员
-builder|👷|建筑工人
-scientist|🧑‍🔬|科学家`),
+forest|🌲|森林
+cactus|🌵|仙人掌
+sunflower|🌻|向日葵
+rose|🌹|玫瑰`),
+U('动物园 Zoo','🦁',`
+lion|🦁|狮子
+tiger|🐯|老虎
+elephant|🐘|大象
+monkey|🐵|猴子
+giraffe|🦒|长颈鹿
+zebra|🦓|斑马
+panda|🐼|熊猫
+hippo|🦛|河马
+kangaroo|🦘|袋鼠
+snake|🐍|蛇
+gorilla|🦍|大猩猩
+rhino|🦏|犀牛
+wolf|🐺|狼
+deer|🦌|鹿
+squirrel|🐿️|松鼠
+camel|🐫|骆驼`),
+U('海洋和昆虫 Sea & Bugs','🐳',`
+whale|🐳|鲸鱼
+dolphin|🐬|海豚
+shark|🦈|鲨鱼
+octopus|🐙|章鱼
+crab|🦀|螃蟹
+turtle|🐢|乌龟
+seal|🦭|海豹
+penguin|🐧|企鹅
+bee|🐝|蜜蜂
+ant|🐜|蚂蚁
+butterfly|🦋|蝴蝶
+ladybug|🐞|瓢虫
+snail|🐌|蜗牛
+spider|🕷️|蜘蛛
+worm|🪱|虫子
+caterpillar|🐛|毛毛虫`),
 U('地方 Places','🏞️',`
 park|🏞️|公园
 zoo|🦁🦓|动物园
+farm|🚜|农场
 hospital|🏥|医院
 store|🏪|商店
 bank|🏦|银行
 hotel|🏨|酒店
+library|📚|图书馆
+museum|🏛️|博物馆
 castle|🏰|城堡
 bridge|🌉|桥
 tent|⛺|帐篷
-museum|🏛️|博物馆
 city|🏙️|城市
-stadium|🏟️|体育场`),
-U('野生动物 Wild animals','🦅',`
-eagle|🦅|老鹰
-parrot|🦜|鹦鹉
-swan|🦢|天鹅
-peacock|🦚|孔雀
-flamingo|🦩|火烈鸟
-dove|🕊️|鸽子
-bat|🦇|蝙蝠
-wolf|🐺|狼
-deer|🦌|鹿
-squirrel|🐿️|松鼠
-raccoon|🦝|浣熊
-hedgehog|🦔|刺猬`),
-U('家里的东西 Things','🧼',`
-soap|🧼|肥皂
-toothbrush|🪥|牙刷
-sponge|🧽|海绵
-bucket|🪣|水桶
-mirror|🪞|镜子
-broom|🧹|扫帚
-basket|🧺|篮子
-shower|🚿|淋浴
-box|📦|箱子
-lock|🔒|锁
-bell|🔔|铃铛
-candle|🕯️|蜡烛`),
-U('节日和时间 Holidays','🎄',`
-morning|🌅|早上
-night|🌃|晚上
-clock|⏰|时钟
-calendar|📅|日历
-birthday|🎂|生日
-Christmas|🎄|圣诞节
-Halloween|🎃|万圣节
-Spring Festival|🧧|春节
-fireworks|🎆|烟花
-party|🎉|派对
-gift|🎁|礼物
-snowman|⛄|雪人`),
-U('相反词 Opposites','↕️',`
-big|#sky 🐘@50,52,72|大
-small|#sky 🐭@50,68,22|小
-tall|#sky 🌳@50,44,80|高
-short|#sky 🌳@50,64,26|矮
-up|⬆️|上
-down|⬇️|下
-left|⬅️|左
-right|➡️|右
-fast|🐆💨|快
-slow|🐌|慢
-full|#none [glassfull]@50,52,60|满的
-empty|#none [glassempty]@50,52,60|空的`),
-U('童话人物 Story people','🧚',`
-king|🤴|国王
-princess|👸|公主
-fairy|🧚|仙女
-wizard|🧙|巫师
-mermaid|🧜‍♀️|美人鱼
-ghost|👻|幽灵
-alien|👽|外星人
-dragon|🐉|龙
-unicorn|🦄|独角兽
-elf|🧝|小精灵
-superhero|🦸|超级英雄
-pirate|🏴‍☠️|海盗`)
-]},
-{id:'A',name:'A',title:'常用词和短语',c:'#1cb0f6',cd:'#1899d6',units:[
-U('身边的东西 Things','🎒',`
-book|📖|书
-bag|🎒|书包
-hat|👒|帽子
-shoe|👟|鞋子
-cup|☕|杯子
-bed|🛏️|床
-chair|🪑|椅子
-door|🚪|门
-clock|⏰|钟
-ball|⚽|球`),
-U('大自然 Nature','🌳',`
-sun|☀️|太阳
-moon|🌙|月亮
-star|⭐|星星
-tree|🌳|树
-flower|🌸|花
-rain|🌧️|雨
-snow|❄️|雪
-cloud|☁️|云
-sea|🌊|大海
-rainbow|🌈|彩虹`),
-U('打招呼 Hello','👋',`
-Hello!|👋😃|你好！
-Goodbye!|👋🚶|再见！
-Good morning!|🌅|早上好！
-Good night!|🌙😴|晚安！
-Thank you!|🙏|谢谢！
-I'm sorry.|😔|对不起。
-Happy birthday!|🎂🎉|生日快乐！
-I love you!|🥰❤️|我爱你！
-Please.|🥺|请。
-Excuse me.|🙋|打扰一下。`),
-U('什么颜色 Color + Thing','🍏',`
+stadium|🏟️|体育场
+airport|🛫|机场`),
+U('运动和音乐 Sports & Music','⚽',`
+soccer|⚽|足球
+basketball|🏀|篮球
+baseball|⚾|棒球
+tennis|🎾|网球
+golf|⛳|高尔夫
+bowling|🎳|保龄球
+volleyball|🏐|排球
+skateboard|🛹|滑板
+guitar|🎸|吉他
+piano|🎹|钢琴
+violin|🎻|小提琴
+trumpet|🎺|小号
+drums|🥁|架子鼓
+microphone|🎤|麦克风
+headphones|🎧|耳机
+music|🎵|音乐`),
+U('a / an + 名词','🅰️',`
+a dog|🐶|一只狗
+a cat|🐱|一只猫
+a ball|⚽|一个球
+a hat|👒|一顶帽子
+a bus|🚌|一辆公交车
+a car|🚗|一辆汽车
+a book|📖|一本书
+a kite|🪁|一只风筝
+a fish|🐟|一条鱼
+a cake|🍰|一块蛋糕
+an apple|🍎|一个苹果
+an egg|🥚|一个鸡蛋
+an owl|🦉|一只猫头鹰
+an ant|🐜|一只蚂蚁
+an orange|🍊|一个橙子
+an elephant|🐘|一头大象`),
+U('the + 名词','☀️',`
+the sun|☀️|太阳
+the moon|🌙|月亮
+the stars|✨|星星
+the sky|🌌|天空
+the sea|🌊|大海
+the tree|🌳|那棵树
+the house|🏠|那座房子
+the door|🚪|那扇门
+the bed|🛏️|那张床
+the park|🏞️|公园
+the rain|🌧️|雨
+the snow|❄️|雪
+the zoo|🦁|动物园
+the farm|🚜|农场
+the beach|🏖️|海滩
+the train|🚆|那列火车`),
+U('my + 名词','🙋',`
+my hat|🎩|我的帽子
+my bag|🎒|我的书包
+my books|📚|我的书
+my bike|🚲|我的自行车
+my ball|🏀|我的球
+my cat|🐈|我的猫
+my dog|🐕|我的狗
+my mom|👩|我的妈妈
+my dad|👨|我的爸爸
+my bed|🛏️|我的床
+my shoes|👟|我的鞋
+my cup|🥤|我的杯子
+my toys|🧸|我的玩具
+my friend|🧑‍🤝‍🧑|我的朋友
+my house|🏡|我的家
+my eyes|👀|我的眼睛`),
+U('数一数 How many','🐱',`
+one cat|🐱|一只猫
+two cats|🐱🐱|两只猫
+three cats|🐱🐱🐱|三只猫
+one dog|🐶|一只狗
+two dogs|🐶🐶|两只狗
+three dogs|🐶🐶🐶|三只狗
+two balls|⚽⚽|两个球
+three balls|⚽⚽⚽|三个球
+four stars|⭐⭐⭐⭐|四颗星星
+five ducks|🦆🦆🦆🦆🦆|五只鸭子
+four apples|🍎🍎🍎🍎|四个苹果
+five apples|🍎🍎🍎🍎🍎|五个苹果
+two birds|🐦🐦|两只鸟
+three fish|🐟🐟🐟|三条鱼
+six eggs|🥚🥚🥚🥚🥚🥚|六个鸡蛋
+two trees|🌳🌳|两棵树`),
+U('颜色 + 名词','🍏',`
 a red apple|🍎|一个红苹果
 a green apple|🍏|一个青苹果
 a red car|🚗|一辆红色的车
@@ -755,29 +667,13 @@ a blue heart|💙|一颗蓝心
 a yellow heart|💛|一颗黄色的心
 a green book|📗|一本绿色的书
 a blue book|📘|一本蓝色的书
-a red book|📕|一本红色的书`),
-U('数一数 How many','🐱',`
-one cat|🐱|一只猫
-two cats|🐱🐱|两只猫
-three cats|🐱🐱🐱|三只猫
-one dog|🐶|一只狗
-two dogs|🐶🐶|两只狗
-three dogs|🐶🐶🐶|三只狗
-two balls|⚽⚽|两个球
-four stars|⭐⭐⭐⭐|四颗星星
-five ducks|🦆🦆🦆🦆🦆|五只鸭子
-four apples|🍎🍎🍎🍎|四个苹果`),
-U('动作 Actions','🏃',`
-run|🏃|跑
-walk|🚶|走路
-swim|🏊|游泳
-sleep|😴|睡觉
-eat|🍽️|吃
-drink|🥤|喝
-sing|🎤|唱歌
-dance|💃|跳舞
-cry|😭|哭
-laugh|😂|笑`),
+a red book|📕|一本红色的书
+a pink pig|🐷|一头粉色的猪
+a yellow duck|🐥|一只黄色的鸭子
+a green frog|🐸|一只绿色的青蛙
+a brown bear|🐻|一只棕色的熊
+a black cat|🐈‍⬛|一只黑色的猫
+a white sheep|🐑|一只白色的羊`),
 U('大和小 Big & Small','🐘',`
 a big dog|#sky 🐕@50,54,66|一只大狗
 a small dog|#sky 🐕@50,68,20|一只小狗
@@ -788,95 +684,347 @@ a small fish|#water 🐟@50,50,18|一条小鱼
 a big tree|#sky 🌳@50,44,80|一棵大树
 a small tree|#sky 🌳@50,64,26|一棵小树
 a big cat|#sky 🐈@50,54,62|一只大猫
-a small cat|#sky 🐈@50,68,20|一只小猫`),
-U('我的身体 My body','👀',`
-my eyes|👀|我的眼睛
-my ears|👂|我的耳朵
-my nose|👃|我的鼻子
-my mouth|👄|我的嘴巴
-my hands|👐|我的双手
-my feet|🦶|我的脚
-my hair|💇|我的头发
-my teeth|🦷|我的牙齿
-my arms|💪|我的手臂
-my fingers|🖐️|我的手指`),
-U('我的家人 My family','👨‍👩‍👧',`
-my mom|👩|我的妈妈
-my dad|👨|我的爸爸
-my baby sister|👶|我的小妹妹
-my big brother|👦|我的哥哥
-my grandma|👵|我的奶奶
-my grandpa|👴|我的爷爷
-my friend|🧑‍🤝‍🧑|我的朋友
-my dog|🐕|我的狗
-my cat|🐈|我的猫
-my teacher|🧑‍🏫|我的老师`),
-U('什么颜色 2 Colors','🐷',`
-a pink pig|🐷|一头粉色的猪
-a yellow duck|🐥|一只黄色的鸭子
-a green frog|🐸|一只绿色的青蛙
-a brown bear|🐻|一只棕色的熊
-a white sheep|🐑|一只白色的羊
-a black cat|🐈‍⬛|一只黑色的猫
-a gray elephant|🐘|一头灰色的大象
-an orange fish|🐠|一条橙色的鱼
-purple grapes|🍇|紫色的葡萄
-a red crab|🦀|一只红色的螃蟹`),
-U('这是什么 It is a / an','🦉',`
-It is a fox.|🦊|它是一只狐狸。
-It is an owl.|🦉|它是一只猫头鹰。
-It is an egg.|🥚|它是一个鸡蛋。
-It is a bus.|🚌|它是一辆公交车。
-It is a cake.|🎂|它是一个蛋糕。
-It is a bee.|🐝|它是一只蜜蜂。
-It is an apple.|🍎|它是一个苹果。
-It is a hat.|🎩|它是一顶帽子。
-It is an ant.|🐜|它是一只蚂蚁。
-It is a kite.|🪁|它是一只风筝。`),
-U('看那个 Look at','👀',`
-Look at the fish.|🐠|看那条鱼。
-Look at the frog.|🐸|看那只青蛙。
-Look at the rainbow.|🌈|看那道彩虹。
-Look at the kite.|🪁|看那只风筝。
+a small cat|#sky 🐈@50,68,20|一只小猫
+a fast car|🏎️💨|一辆很快的车
+a slow snail|🐌|一只很慢的蜗牛
+a happy face|😀|一张开心的脸
+a sad face|😢|一张难过的脸
+a hot drink|☕|一杯热饮
+a cold drink|🧋|一杯冷饮`),
+U('动作 1 Actions','🏃',`
+run|🏃|跑
+walk|🚶|走
+jump|🤸|跳
+swim|🏊|游泳
+sleep|😴|睡觉
+eat|🍽️|吃
+drink|🥤|喝
+sing|🎤|唱歌
+dance|💃|跳舞
+cry|😭|哭
+laugh|😂|笑
+clap|👏|拍手
+wave|👋|挥手
+read|📖|读
+write|✍️|写
+ride|🚴|骑`),
+U('动作 2 Actions','🧗',`
+sit|🧘|坐
+stand|🧍|站
+climb|🧗|爬
+hug|🤗|拥抱
+look|👀|看
+listen|👂|听
+talk|🗣️|说话
+think|🤔|想
+cook|🍳|做饭
+draw|🎨|画画
+kick|🦵|踢
+throw|🤾|扔
+wash|🧼|洗
+brush|🪥|刷
+smile|😊|微笑
+point|👉|指`)
+]},
+{id:'A',name:'A',title:'简单句子',c:'#1cb0f6',cd:'#1899d6',units:[
+U('这是 This is a…','👆',`
+This is a cat.|🐱|这是一只猫。
+This is a dog.|🐶|这是一只狗。
+This is a pig.|🐷|这是一头猪。
+This is a cow.|🐮|这是一头奶牛。
+This is a duck.|🦆|这是一只鸭子。
+This is a fish.|🐟|这是一条鱼。
+This is a bird.|🐦|这是一只鸟。
+This is a frog.|🐸|这是一只青蛙。
+This is a car.|🚗|这是一辆汽车。
+This is a bus.|🚌|这是一辆公交车。
+This is a ball.|⚽|这是一个球。
+This is a book.|📖|这是一本书。
+This is a hat.|👒|这是一顶帽子。
+This is a cup.|☕|这是一个杯子。
+This is a bed.|🛏️|这是一张床。
+This is a kite.|🪁|这是一只风筝。`),
+U('我看见 I see a…','👀',`
+I see a lion.|🦁|我看见一只狮子。
+I see a tiger.|🐯|我看见一只老虎。
+I see a monkey.|🐵|我看见一只猴子。
+I see a zebra.|🦓|我看见一匹斑马。
+I see a giraffe.|🦒|我看见一只长颈鹿。
+I see a bear.|🐻|我看见一只熊。
+I see a snake.|🐍|我看见一条蛇。
+I see a whale.|🐳|我看见一头鲸鱼。
+I see a shark.|🦈|我看见一条鲨鱼。
+I see a crab.|🦀|我看见一只螃蟹。
+I see a bee.|🐝|我看见一只蜜蜂。
+I see a butterfly.|🦋|我看见一只蝴蝶。
+I see a spider.|🕷️|我看见一只蜘蛛。
+I see a rabbit.|🐰|我看见一只兔子。
+I see a horse.|🐴|我看见一匹马。
+I see a sheep.|🐑|我看见一只羊。`),
+U('看 Look at the…','🌈',`
+Look at the sun.|☀️|看太阳。
+Look at the moon.|🌙|看月亮。
+Look at the stars.|✨|看星星。
+Look at the rainbow.|🌈|看彩虹。
+Look at the cloud.|☁️|看那朵云。
+Look at the rain.|🌧️|看那场雨。
+Look at the snow.|❄️|看那些雪。
+Look at the tree.|🌳|看那棵树。
+Look at the flower.|🌸|看那朵花。
+Look at the sea.|🌊|看大海。
+Look at the mountain.|⛰️|看那座山。
+Look at the boat.|⛵|看那艘船。
 Look at the plane.|✈️|看那架飞机。
-Look at the flower.|🌻|看那朵花。
-Look at the snowman.|⛄|看那个雪人。
-Look at the stars.|✨|看那些星星。
-Look at the moon.|🌕|看那个月亮。
-Look at the bus.|🚌|看那辆公交车。`),
-U('在哪里 Places','🏞️',`
-at the park|🏞️|在公园
-at the zoo|🦁🦓|在动物园
-at the beach|🏖️|在海滩
-at the farm|🚜|在农场
-at the store|🏪|在商店
-at school|🏫|在学校
-at the hospital|🏥|在医院
-at the library|📚|在图书馆
-at home|🏠|在家
-at the airport|🛫|在机场`),
-U('生日派对 Party','🎂',`
-a birthday cake|🎂|一个生日蛋糕
-a gift|🎁|一份礼物
-a balloon|🎈|一个气球
-a party hat|🥳|一顶派对帽
-candles|🕯️|蜡烛
-a card|💌|一张贺卡
-a cupcake|🧁|一个纸杯蛋糕
-music|🎵|音乐
-a piñata|🪅|一个彩罐
-games|🎲|游戏`),
-U('运动 Sports','⚽',`
-play soccer|⚽|踢足球
-play basketball|🏀|打篮球
-play baseball|⚾|打棒球
-play tennis|🎾|打网球
-play ping-pong|🏓|打乒乓球
-go skating|⛸️|去滑冰
-go skiing|⛷️|去滑雪
-go swimming|🏊‍♀️|去游泳
-play football|🏈|打橄榄球
-go fishing|🎣|去钓鱼`)
+Look at the train.|🚆|看那列火车。
+Look at the rocket.|🚀|看那枚火箭。
+Look at the fireworks.|🎆|看烟花。`),
+U('它是 It is a / an…','🦉',`
+It is an apple.|🍎|它是一个苹果。
+It is an egg.|🥚|它是一个鸡蛋。
+It is an owl.|🦉|它是一只猫头鹰。
+It is an ant.|🐜|它是一只蚂蚁。
+It is an orange.|🍊|它是一个橙子。
+It is an elephant.|🐘|它是一头大象。
+It is an ice cream.|🍦|它是一个冰淇淋。
+It is an octopus.|🐙|它是一只章鱼。
+It is a fox.|🦊|它是一只狐狸。
+It is a bee.|🐝|它是一只蜜蜂。
+It is a cake.|🍰|它是一块蛋糕。
+It is a key.|🔑|它是一把钥匙。
+It is a drum.|🥁|它是一面鼓。
+It is a robot.|🤖|它是一个机器人。
+It is a doll.|🪆|它是一个娃娃。
+It is a clock.|⏰|它是一个钟。`),
+U('我喜欢 I like…','😋',`
+I like apples.|🍎|我喜欢苹果。
+I like bananas.|🍌|我喜欢香蕉。
+I like grapes.|🍇|我喜欢葡萄。
+I like cookies.|🍪|我喜欢饼干。
+I like pizza.|🍕|我喜欢披萨。
+I like cake.|🍰|我喜欢蛋糕。
+I like milk.|🥛|我喜欢牛奶。
+I like carrots.|🥕|我喜欢胡萝卜。
+I like eggs.|🥚|我喜欢鸡蛋。
+I like rice.|🍚|我喜欢米饭。
+I like noodles.|🍜|我喜欢面条。
+I like ice cream.|🍦|我喜欢冰淇淋。
+I like strawberries.|🍓|我喜欢草莓。
+I like watermelon.|🍉|我喜欢西瓜。
+I like corn.|🌽|我喜欢玉米。
+I like cheese.|🧀|我喜欢奶酪。`),
+U('这是我的 This is my…','🙋',`
+This is my mom.|👩|这是我的妈妈。
+This is my dad.|👨|这是我的爸爸。
+This is my baby.|👶|这是我的宝宝。
+This is my grandma.|👵|这是我的奶奶。
+This is my grandpa.|👴|这是我的爷爷。
+This is my friend.|🧑‍🤝‍🧑|这是我的朋友。
+This is my teacher.|🧑‍🏫|这是我的老师。
+This is my dog.|🐶|这是我的狗。
+This is my cat.|🐱|这是我的猫。
+This is my bag.|🎒|这是我的书包。
+This is my bike.|🚲|这是我的自行车。
+This is my bed.|🛏️|这是我的床。
+This is my house.|🏠|这是我的家。
+This is my teddy bear.|🧸|这是我的泰迪熊。
+This is my school.|🏫|这是我的学校。
+This is my family.|👨‍👩‍👧‍👦|这是我的家人。`),
+U('我有 I have a…','🎁',`
+I have a doll.|🪆|我有一个娃娃。
+I have a robot.|🤖|我有一个机器人。
+I have a car.|🚗|我有一辆汽车。
+I have a train.|🚂|我有一列火车。
+I have a drum.|🥁|我有一面鼓。
+I have a puzzle.|🧩|我有一个拼图。
+I have a balloon.|🎈|我有一个气球。
+I have a yo-yo.|🪀|我有一个悠悠球。
+I have a pencil.|✏️|我有一支铅笔。
+I have a crayon.|🖍️|我有一支蜡笔。
+I have a ruler.|📏|我有一把尺子。
+I have a book.|📖|我有一本书。
+I have a backpack.|🎒|我有一个书包。
+I have a hat.|👒|我有一顶帽子。
+I have a dog.|🐕|我有一只狗。
+I have a fish.|🐠|我有一条鱼。`),
+U('在这里 Here is the…','👉',`
+Here is the key.|🔑|钥匙在这里。
+Here is the cup.|☕|杯子在这里。
+Here is the shoe.|👟|鞋子在这里。
+Here is the hat.|🎩|帽子在这里。
+Here is the sock.|🧦|袜子在这里。
+Here is the spoon.|🥄|勺子在这里。
+Here is the bag.|👜|包在这里。
+Here is the map.|🗺️|地图在这里。
+Here is the toy.|🧸|玩具在这里。
+Here is the box.|📦|箱子在这里。
+Here is the clock.|⏰|钟在这里。
+Here is the phone.|📱|手机在这里。
+Here is the bell.|🔔|铃在这里。
+Here is the gift.|🎁|礼物在这里。
+Here is the egg.|🥚|鸡蛋在这里。`),
+U('我会 I can…','💪',`
+I can run.|🏃|我会跑。
+I can jump.|🤸|我会跳。
+I can swim.|🏊|我会游泳。
+I can sing.|🎤|我会唱歌。
+I can dance.|💃|我会跳舞。
+I can read.|📖|我会读书。
+I can write.|✍️|我会写字。
+I can draw.|🎨|我会画画。
+I can climb.|🧗|我会爬。
+I can clap.|👏|我会拍手。
+I can skate.|⛸️|我会滑冰。
+I can ski.|⛷️|我会滑雪。
+I can cook.|🍳|我会做饭。
+I can ride a bike.|🚴|我会骑自行车。
+I can fly a kite.|🪁|我会放风筝。
+I can play ball.|⚽|我会玩球。`),
+U('我是 I am…','😀',`
+I am happy.|😀|我很开心。
+I am sad.|😢|我很难过。
+I am angry.|😠|我很生气。
+I am scared.|😱|我很害怕。
+I am sleepy.|😴|我很困。
+I am sick.|🤒|我生病了。
+I am hot.|🥵|我很热。
+I am cold.|🥶|我很冷。
+I am hungry.|🤤|我饿了。
+I am tired.|😫|我很累。
+I am silly.|🤪|我很调皮。
+I am shy.|😳|我很害羞。
+I am five.|🖐️|我五岁了。
+I am a boy.|👦|我是一个男孩。
+I am a girl.|👧|我是一个女孩。`),
+U('我们 We…','👫',`
+We play ball.|⚽👫|我们玩球。
+We swim.|🏊🏊|我们游泳。
+We run.|🏃🏃|我们跑步。
+We dance.|👯|我们跳舞。
+We sing.|🎤🎶|我们唱歌。
+We eat.|🍽️|我们吃饭。
+We read.|📚|我们读书。
+We draw.|🎨🖍️|我们画画。
+We clap.|👏👏|我们拍手。
+We jump.|🤸🤸|我们跳。
+We cook.|🍳|我们做饭。
+We ride bikes.|🚲🚲|我们骑自行车。
+We wave.|👋👋|我们挥手。
+We laugh.|😂😂|我们笑。
+We walk.|🚶🚶|我们走路。`),
+U('数一数 I see two…','🔢',`
+I see one sun.|☀️|我看见一个太阳。
+I see two cats.|🐱🐱|我看见两只猫。
+I see three dogs.|🐶🐶🐶|我看见三只狗。
+I see four birds.|🐦🐦🐦🐦|我看见四只鸟。
+I see five fish.|🐟🐟🐟🐟🐟|我看见五条鱼。
+I see two cars.|🚗🚗|我看见两辆车。
+I see three balls.|⚽⚽⚽|我看见三个球。
+I see four eggs.|🥚🥚🥚🥚|我看见四个鸡蛋。
+I see five stars.|⭐⭐⭐⭐⭐|我看见五颗星星。
+I see two trees.|🌳🌳|我看见两棵树。
+I see three ducks.|🦆🦆🦆|我看见三只鸭子。
+I see one moon.|🌙|我看见一个月亮。
+I see six apples.|🍎🍎🍎🍎🍎🍎|我看见六个苹果。
+I see two frogs.|🐸🐸|我看见两只青蛙。
+I see three bees.|🐝🐝🐝|我看见三只蜜蜂。
+I see four boats.|⛵⛵⛵⛵|我看见四艘船。`),
+U('什么颜色 The … is red.','🍌',`
+The apple is red.|🍎|苹果是红色的。
+The banana is yellow.|🍌|香蕉是黄色的。
+The leaf is green.|🍃|叶子是绿色的。
+The sea is blue.|🌊|大海是蓝色的。
+The snow is white.|❄️|雪是白色的。
+The grapes are purple.|🍇|葡萄是紫色的。
+The carrot is orange.|🥕|胡萝卜是橙色的。
+The chocolate is brown.|🍫|巧克力是棕色的。
+The cat is black.|🐈‍⬛|这只猫是黑色的。
+The pig is pink.|🐷|这头猪是粉色的。
+The elephant is gray.|🐘|大象是灰色的。
+The frog is green.|🐸|青蛙是绿色的。
+The sun is yellow.|☀️|太阳是黄色的。
+The car is red.|🚗|这辆车是红色的。
+The milk is white.|🥛|牛奶是白色的。`),
+U('天气 It is sunny.','⛅',`
+It is sunny.|☀️|今天是晴天。
+It is rainy.|🌧️|今天下雨。
+It is snowy.|☃️|今天下雪。
+It is windy.|🌬️|今天刮风。
+It is cloudy.|☁️|今天多云。
+It is hot.|🥵|天气很热。
+It is cold.|🥶|天气很冷。
+It is foggy.|🌫️|今天有雾。
+It is stormy.|⛈️|今天有暴风雨。
+It is warm.|🌤️|天气很暖和。
+It is icy.|🧊|路上结冰了。
+It is night.|🌃|现在是晚上。
+It is morning.|🌅|现在是早上。
+It is fun.|🎢|真好玩。`),
+U('我去 I go to…','🏫',`
+I go to the park.|🏞️|我去公园。
+I go to the zoo.|🦁|我去动物园。
+I go to the beach.|🏖️|我去海滩。
+I go to the store.|🏪|我去商店。
+I go to the farm.|🚜|我去农场。
+I go to the library.|📚|我去图书馆。
+I go to the hospital.|🏥|我去医院。
+I go to the museum.|🏛️|我去博物馆。
+I go to the bank.|🏦|我去银行。
+I go to the castle.|🏰|我去城堡。
+I go to the airport.|🛫|我去机场。
+I go to the sea.|🌊|我去海边。
+I go to school.|🏫|我去上学。
+I go home.|🏠|我回家。
+I go to bed.|🛏️|我去睡觉。`),
+U('大小快慢 The … is big.','🐘',`
+The elephant is big.|🐘|大象很大。
+The mouse is small.|🐭|老鼠很小。
+The giraffe is tall.|🦒|长颈鹿很高。
+The whale is big.|🐋|鲸鱼很大。
+The ant is small.|🐜|蚂蚁很小。
+The snake is long.|🐍|蛇很长。
+The turtle is slow.|🐢|乌龟很慢。
+The rabbit is fast.|🐇💨|兔子很快。
+The snail is slow.|🐌|蜗牛很慢。
+The cheetah is fast.|🐆|猎豹很快。
+The fire is hot.|🔥|火很烫。
+The ice is cold.|🧊|冰很冷。
+The ball is round.|⚽|球是圆的。
+The box is heavy.|📦|箱子很重。
+The feather is light.|🪶|羽毛很轻。
+The dog is wet.|🐕💦|狗湿了。`),
+U('会做什么 The … can…','🐦',`
+The bird can fly.|🕊️|鸟会飞。
+The fish can swim.|🐠|鱼会游泳。
+The frog can jump.|🐸|青蛙会跳。
+The dog can run.|🐕|狗会跑。
+The cat can climb.|🐈|猫会爬。
+The duck can swim.|🦆|鸭子会游泳。
+The bee can fly.|🐝|蜜蜂会飞。
+The horse can run.|🐎|马会跑。
+The kangaroo can hop.|🦘|袋鼠会蹦。
+The monkey can climb.|🐒|猴子会爬。
+The lion can roar.|🦁|狮子会吼。
+The cow can moo.|🐄|奶牛会哞哞叫。
+The baby can crawl.|👶|宝宝会爬。
+The rabbit can hop.|🐇|兔子会蹦。
+The penguin can swim.|🐧|企鹅会游泳。
+The robot can talk.|🤖|机器人会说话。`),
+U('我想要 I want a…','🙏',`
+I want a cookie.|🍪|我想要一块饼干。
+I want a cupcake.|🧁|我想要一个纸杯蛋糕。
+I want an apple.|🍏|我想要一个苹果。
+I want a drink.|🥤|我想要一杯饮料。
+I want a hug.|🤗|我想要一个拥抱。
+I want a toy.|🧸|我想要一个玩具。
+I want a pet.|🐹|我想要一只宠物。
+I want a balloon.|🎈|我想要一个气球。
+I want a hot dog.|🌭|我想要一个热狗。
+I want a sandwich.|🥪|我想要一个三明治。
+I want a donut.|🍩|我想要一个甜甜圈。
+I want a candy.|🍬|我想要一颗糖。
+I want a kite.|🪁|我想要一只风筝。
+I want a gift.|🎁|我想要一份礼物。
+I want a nap.|😴|我想睡个午觉。`)
 ]},
 {id:'B',name:'B',title:'第一批句子',c:'#ce82ff',cd:'#a568cc',units:[
 U('我看见 I see','👀',`
@@ -1272,12 +1420,12 @@ Dinosaurs lived a long time ago.|🦕🦖|恐龙生活在很久很久以前。`)
 
 /* ================= 索引 ================= */
 const ALL=[],UNITS=[];
-// 每节新课 5–6 个新词（12 个词的单元分 6+6，10 个分 5+5），再加 1 节复习课
-function chunk(a){const n=Math.ceil(a.length/6.5),r=[];let s=0;for(let i=1;i<=n;i++){const e=Math.round(a.length*i/n);r.push(a.slice(s,e));s=e}return r}
+// 每节学习课 5–6 个新内容：15–16 个词的单元分成 3 节，再加 1 节单元考试，共 4 个模块
+function chunk(a){const n=Math.ceil(a.length/6),r=[];let s=0;for(let i=1;i<=n;i++){const e=Math.round(a.length*i/n);r.push(a.slice(s,e));s=e}return r}
 LEVELS.forEach((lv,li)=>lv.units.forEach((u,ui)=>{
   u.li=li;u.ui=ui;u.key=lv.id+'.'+ui;u.gi=UNITS.length;u.level=lv;
-  u.items.forEach(it=>{it.id=lv.id+'|'+it.text;it.unit=u;ALL.push(it)});
-  u.chunks=chunk(u.items);u.nL=u.chunks.length+1;   // 若干新课 + 1 节复习课
+  u.items.forEach(it=>{it.id=lv.id+'|'+u.name+'|'+it.text;it.unit=u;ALL.push(it)});   // 编号带单元名：同一级别里 orange（水果）和 orange（颜色）可以并存
+  u.chunks=chunk(u.items);u.nL=u.chunks.length+1;   // 若干节学习课 + 1 节单元考试
   UNITS.push(u);
 }));
 
@@ -1314,14 +1462,13 @@ function glass(x,y,s,full){
     `<path d="M${r2(x-s*.3)} ${r2(t)}L${r2(x-s*.225)} ${r2(b)}L${r2(x+s*.225)} ${r2(b)}L${r2(x+s*.3)} ${r2(t)}" fill="none" stroke="#9aa9b5" stroke-width="1.6" stroke-linejoin="round"/>`;
 }
 const poly=(x,y,s,n)=>`<path d="${Array.from({length:n},(_,i)=>{const a=-Math.PI/2+i*2*Math.PI/n;return (i?'L':'M')+r2(x+s/2*Math.cos(a))+' '+r2(y+s/2*Math.sin(a))}).join('')}z"/>`;
-const shape=el=>`<g fill="#7fd0f7" stroke="#2a8fc4" stroke-width="2.4" stroke-linejoin="round">${el}</g>`;
+const shape=el=>`<g fill="none" stroke="#37474f" stroke-width="3.6" stroke-linejoin="round">${el}</g>`;   // 形状只画黑色轮廓，不填色，和颜色圆点区分开
 const PROP={
   table:(x,y,s)=>{const l=x-s/2;return `<rect x="${l}" y="${y}" width="${s}" height="${r2(s*.07)}" rx="1.2" fill="#b9773c"/><rect x="${r2(l+s*.08)}" y="${r2(y+s*.06)}" width="${r2(s*.06)}" height="${r2(s*.39)}" fill="#9a5f2c"/><rect x="${r2(l+s*.86)}" y="${r2(y+s*.06)}" width="${r2(s*.06)}" height="${r2(s*.39)}" fill="#9a5f2c"/>`},
   bed:(x,y,s)=>{const l=x-s/2;return `<rect x="${l}" y="${r2(y-s*.2)}" width="${r2(s*.06)}" height="${r2(s*.65)}" rx="1" fill="#8d5a3b"/><rect x="${r2(l+s*.94)}" y="${r2(y-s*.04)}" width="${r2(s*.06)}" height="${r2(s*.49)}" rx="1" fill="#8d5a3b"/><rect x="${r2(l+s*.06)}" y="${r2(y+s*.12)}" width="${r2(s*.88)}" height="${r2(s*.07)}" fill="#a86d47"/><rect x="${r2(l+s*.06)}" y="${y}" width="${r2(s*.88)}" height="${r2(s*.12)}" rx="2" fill="#fff" stroke="#d9d9d9" stroke-width=".6"/><rect x="${r2(l+s*.35)}" y="${r2(y-s*.01)}" width="${r2(s*.59)}" height="${r2(s*.13)}" rx="2" fill="#7cc4f5"/><ellipse cx="${r2(l+s*.18)}" cy="${r2(y-s*.02)}" rx="${r2(s*.09)}" ry="${r2(s*.045)}" fill="#fff" stroke="#d9d9d9" stroke-width=".6"/>`},
   // 打开的箱子：只画前脸和翻开的盖子，前面写的物体会显得“在箱子里”
   box:(x,y,s)=>{const l=x-s/2,r=x+s/2,h=s*.62;return `<path d="M${l} ${y}L${r2(l-s*.16)} ${r2(y-s*.2)}L${r2(l+s*.1)} ${r2(y-s*.24)}L${r2(l+s*.14)} ${y}z" fill="#d9a25f"/><path d="M${r} ${y}L${r2(r+s*.16)} ${r2(y-s*.2)}L${r2(r-s*.1)} ${r2(y-s*.24)}L${r2(r-s*.14)} ${y}z" fill="#d9a25f"/><rect x="${l}" y="${y}" width="${s}" height="${r2(h)}" rx="1.5" fill="#c98a4b"/><rect x="${l}" y="${y}" width="${s}" height="${r2(s*.06)}" fill="#a96f35"/><rect x="${r2(x-s*.08)}" y="${r2(y+s*.06)}" width="${r2(s*.16)}" height="${r2(h*.35)}" fill="#e8c48f"/>`},
   cbox:(x,y,s)=>{const l=x-s/2,h=s*.62,d=s*.14;return `<path d="M${l} ${y}L${r2(l+d)} ${r2(y-d)}L${r2(x+s/2+d)} ${r2(y-d)}L${x+s/2} ${y}z" fill="#e0ad6c"/><path d="M${x+s/2} ${y}L${r2(x+s/2+d)} ${r2(y-d)}L${r2(x+s/2+d)} ${r2(y+h-d)}L${x+s/2} ${r2(y+h)}z" fill="#a96f35"/><rect x="${l}" y="${y}" width="${s}" height="${r2(h)}" fill="#c98a4b"/><rect x="${r2(x-s*.08)}" y="${r2(y-d*.5)}" width="${r2(s*.16)}" height="${r2(h*.35+d*.5)}" fill="#e8c48f" opacity=".9"/>`},
-  // 形状统一用同一种蓝色，孩子只能靠形状来分辨，不会和颜色单词混在一起
   circle:(x,y,s)=>shape(`<circle cx="${x}" cy="${y}" r="${s/2}"/>`),
   square:(x,y,s)=>shape(`<rect x="${r2(x-s*.42)}" y="${r2(y-s*.42)}" width="${r2(s*.84)}" height="${r2(s*.84)}" rx="1.5"/>`),
   rectangle:(x,y,s)=>shape(`<rect x="${x-s/2}" y="${r2(y-s*.3)}" width="${s}" height="${r2(s*.6)}" rx="1.5"/>`),
@@ -1333,7 +1480,9 @@ const PROP={
   pentagon:(x,y,s)=>shape(poly(x,y,s,5)),
   hexagon:(x,y,s)=>shape(poly(x,y,s,6)),
   // 颜色圆点：[dot=e53935]，和形状一样是平涂，十种颜色风格统一
-  dot:(x,y,s,c)=>`<circle cx="${x}" cy="${y}" r="${s/2}" fill="#${c||'999'}" stroke="rgba(0,0,0,.22)" stroke-width="1.6"/>`,
+  dot:(x,y,s,c)=>`<circle cx="${x}" cy="${y}" r="${s/2}" fill="#${c||'999'}"${c==='ffffff'?' stroke="#d0d0d0" stroke-width="1.4"':''}/>`,
+  // 数字卡片：[num=12]，0–15 统一用同一种画法
+  num:(x,y,s,n)=>`<rect x="${x-s/2}" y="${y-s/2}" width="${s}" height="${s}" rx="${r2(s*.18)}" fill="#ffd54f" stroke="#f2a900" stroke-width="2"/><text x="${x}" y="${r2(y+s*.04)}" font-size="${r2(String(n).length>1?s*.56:s*.7)}" font-weight="900" fill="#5d4037" text-anchor="middle" dominant-baseline="central" style="font-family:-apple-system,'Arial Rounded MT Bold',Arial,sans-serif">${n}</text>`,
   pond:(x,y,s)=>`<ellipse cx="${x}" cy="${y}" rx="${s/2}" ry="${r2(s*.15)}" fill="#5cc3f0" stroke="#3fa9db" stroke-width="1"/>`,
   pencil:(x,y,s)=>{const l=x-s/2,h=7,t=8,e=x+s/2;return `<rect x="${l}" y="${y-h/2}" width="5" height="${h}" rx="1.5" fill="#ff8fab"/><rect x="${l+5}" y="${y-h/2}" width="2" height="${h}" fill="#c0c0c0"/><rect x="${l+7}" y="${y-h/2}" width="${s-7-t}" height="${h}" fill="#ffcc33"/><rect x="${l+7}" y="${y-h/2}" width="${s-7-t}" height="${r2(h/3)}" fill="#ffdb66"/><path d="M${e-t} ${y-h/2}L${e} ${y}L${e-t} ${y+h/2}z" fill="#f1c27d"/><path d="M${r2(e-t*.35)} ${r2(y-h*.18)}L${e} ${y}L${r2(e-t*.35)} ${r2(y+h*.18)}z" fill="#444"/>`},
   glassfull:(x,y,s)=>glass(x,y,s,true),
@@ -1492,7 +1641,7 @@ function renderHome(){
       for(let k=0;k<u.nL;k++){
         const st=nodeState(u,k),rev=k===u.chunks.length;
         const g=rev?'🏆':iconOf(u.chunks[k][0].pic);
-        h+=`<button class="node ${st}${S.set.all&&st==='locked'?' open':''}" style="--c:${lv.c};--cd:${lv.cd};--x:${ZZ[k%ZZ.length]}px" data-g="${u.gi}" data-k="${k}" aria-label="${esc(u.name)} 第${k+1}课">${st==='cur'?'<em class="bub">开始</em>':''}<span class="pic">${g}</span></button>`;
+        h+=`<button class="node ${st}${S.set.all&&st==='locked'?' open':''}" style="--c:${lv.c};--cd:${lv.cd};--x:${ZZ[k%ZZ.length]}px" data-g="${u.gi}" data-k="${k}" aria-label="${esc(u.name)} 第${k+1}课">${st==='cur'?`<em class="bub">${rev?'考试':'开始'}</em>`:''}<span class="pic">${g}</span></button>`;
       }
       h+='</div>';
     });
@@ -1728,13 +1877,13 @@ function finish(){
   const t=today(),y=new Date();y.setDate(y.getDate()-1);
   if(S.last!==t){S.streak=S.last===today(y)?S.streak+1:1;S.last=t}
   save();
-  const li=LS.u.li,lvup=LS.lvOpen&&levelCur(li)<0,after=li+1;   // 这一课学完了整个级别
+  const li=LS.u.li,lvup=LS.lvOpen&&levelCur(li)<0,after=li+1,exam=LS.k===LS.u.chunks.length;   // lvup：这一课学完了整个级别
   if(lvup&&after<LEVELS.length){S.lv=after;save()}
   const stars=acc>=90?3:acc>=70?2:1;
   $('#lBar').style.width='100%';
   sfx('win');speak(lvup?'Level up! You are amazing!':'Great job!');
   $('#fBody').innerHTML=`<div class="hero">${lvup?'🏆':'🌙'}</div>
-    <h1>${lvup?'级别完成！':'课程完成！'}</h1>
+    <h1>${lvup?'级别完成！':exam?'单元考试完成！':'课程完成！'}</h1>
     ${lvup?`<div class="lvup">${'LEVEL '+LEVELS[li].name+' 全部完成！'+(after<LEVELS.length?' 下一站：LEVEL '+LEVELS[after].name+' · '+LEVELS[after].title:'')}</div>`:''}
     <div class="stars">${[0,1,2].map(i=>`<span class="${i<stars?'':'off'}">⭐</span>`).join('')}</div>
     <div class="tiles">
