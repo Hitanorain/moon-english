@@ -38,6 +38,11 @@ button{font:inherit;color:inherit;cursor:pointer;-webkit-appearance:none;appeara
 .chip.xp{color:#e5a800}
 .icon-btn{border:0;background:none;padding:6px;border-radius:12px;display:flex}
 .icon-btn:active{background:var(--soft)}
+.icon-btn .mute{display:none}
+.icon-btn.off .mute{display:inline}
+.icon-btn.off svg{stroke:#d0d0d0}
+.kw{color:#e53935}
+.qzh{display:block;font-size:15px;font-weight:600;color:var(--muted);margin-top:2px}
 .icon-btn svg{width:28px;height:28px;stroke:var(--faint);fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
 .path{width:100%;max-width:560px;margin:0 auto;padding:8px 16px 140px}
 .lvl{border-radius:18px;color:#fff;background:var(--c);box-shadow:0 5px 0 var(--cd);padding:16px 18px 14px;margin:30px 0 4px}
@@ -230,6 +235,7 @@ mark{background:#fff3b0;color:inherit;border-radius:6px;padding:0 4px}
     <div class="logo"><span class="pic">🌙</span>Moon英语</div>
     <div class="chip fire" id="hFire">🔥 <span>0</span></div>
     <div class="chip xp" id="hXp">⭐ <span>0</span></div>
+    <button class="icon-btn" id="hMusic" aria-label="背景音乐"><svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/><path class="mute" d="M3 3l18 18"/></svg></button>
     <button class="icon-btn" id="hSet" aria-label="设置"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
   </div><nav class="lvtabs" id="lvTabs" aria-label="选择级别"></nav></header>
   <main class="path" id="path"></main>
@@ -260,771 +266,1098 @@ mark{background:#fff3b0;color:inherit;border-radius:6px;padding:0 4px}
 
 <script>
 'use strict';
-const VERSION='2.0';
+const VERSION='3.0';
 const KEY='moon-english-v1';
 
 /* ================= 课程内容 =================
    每行：英文 | 图片(emoji) | 中文
-   级别参照 RAZ：aa 单词 → A 短语 → B 句型 → C 描述 → D 进行时 → E 日常 → F 季节/过去式 → G 长句
-   每个单元同一句型，选项来自同单元，孩子要听清关键词才能选对。
+   级别参照 RAZ：AA 主题短语（a big house）→ A 主题句子（I see a lion.）→ B 以后更长的句子
+   每个单元一个主题（像 RAZ 的一本小书），约 8 个内容，分 4 个模块：学一学 / 听音选图 / 看图选词 / 主题小测验。
+   英文里用 *big* 标出关键词，页面上显示成红色。
    图片三种写法：emoji；“#背景 物体@x,y,大小[,f翻转] …”代码绘制场景（[table] 这类是画出来的道具）；“img:文件名”读 images 文件夹
-   英文里的 [对/错/错] 是选词填空：第一个是正确答案 */
-const U=(name,icon,src)=>({name,icon,items:src.trim().split('\n').map(l=>{
-  const [raw,pic,zh]=l.split('|').map(s=>s.trim()),it={text:raw,pic:pic||'-',zh:zh||''};
-  const m=raw.match(/\[([^\]]+)\]/);
-  if(m){const o=m[1].split('/');it.text=raw.replace(m[0],o[0]);it.blank={answer:o[0],opts:o,pre:raw.slice(0,m.index),post:raw.slice(m.index+m[0].length)}}
-  return it;
-})});
+   英文里的 [对/错/错] 是选词填空：第一个是正确答案
+   小测验每行：问题 | 中文 | 正确答案 | 错误1; 错误2; 错误3
+     AA 用图片作答：答案写本级别里的词句（用它的图），或者 “=图片” 直接给图；A 级以后直接用文字作答 */
+const U=(name,icon,src,quiz)=>({name,icon,
+  quiz:quiz?quiz.trim().split('\n').map(l=>{const [q,zh,a,w]=l.split('|').map(s=>s.trim());return {q,zh,a,w:w.split(';').map(s=>s.trim())}}):null,
+  items:src.trim().split('\n').map(l=>{
+    let [raw,pic,zh]=l.split('|').map(s=>s.trim());const it={pic:pic||'-',zh:zh||''};
+    const k=raw.match(/\*([^*]+)\*/);if(k){it.kw=k[1];raw=raw.replace(/\*/g,'')}
+    it.text=raw;
+    const m=raw.match(/\[([^\]]+)\]/);
+    if(m){const o=m[1].split('/');it.text=raw.replace(m[0],o[0]);it.blank={answer:o[0],opts:o,pre:raw.slice(0,m.index),post:raw.slice(m.index+m[0].length)}}
+    return it;
+  })});
 const LEVELS=[
-{id:'aa',name:'AA',title:'单词和短语',c:'#58cc02',cd:'#58a700',units:[
-U('动物 Animals','🐾',`
-cat|🐱|猫
-dog|🐶|狗
-pig|🐷|猪
-cow|🐮|奶牛
-duck|🦆|鸭子
-fish|🐟|鱼
-bird|🐦|鸟
-rabbit|🐰|兔子
-bear|🐻|熊
-frog|🐸|青蛙
-fox|🦊|狐狸
-owl|🦉|猫头鹰
-horse|🐴|马
-sheep|🐑|绵羊
-mouse|🐭|老鼠
-chicken|🐔|鸡`),
-U('食物 Food','🍞',`
-milk|🥛|牛奶
-egg|🥚|鸡蛋
-bread|🍞|面包
-rice|🍚|米饭
-noodles|🍜|面条
-soup|🍲|汤
-cake|🍰|蛋糕
-ice cream|🍦|冰淇淋
-cookie|🍪|饼干
-pizza|🍕|披萨
-cheese|🧀|奶酪
-juice|🧃|果汁
-hamburger|🍔|汉堡
-hot dog|🌭|热狗
-sandwich|🥪|三明治
-donut|🍩|甜甜圈`),
-U('水果 Fruits','🍎',`
-apple|🍎|苹果
-banana|🍌|香蕉
-grapes|🍇|葡萄
-orange|🍊|橙子
-strawberry|🍓|草莓
-watermelon|🍉|西瓜
-pear|🍐|梨
-peach|🍑|桃子
-cherries|🍒|樱桃
-lemon|🍋|柠檬
-pineapple|🍍|菠萝
-mango|🥭|芒果
-kiwi|🥝|猕猴桃
-coconut|🥥|椰子
-blueberries|🫐|蓝莓`),
-U('颜色和形状 Colors & Shapes','🎨',`
-red|#none [dot=e53935]@50,50,62|红色
-blue|#none [dot=1e88e5]@50,50,62|蓝色
-green|#none [dot=43a047]@50,50,62|绿色
-yellow|#none [dot=fdd835]@50,50,62|黄色
-orange|#none [dot=fb8c00]@50,50,62|橙色
-pink|#none [dot=f48fb1]@50,50,62|粉色
-purple|#none [dot=8e24aa]@50,50,62|紫色
-brown|#none [dot=795548]@50,50,62|棕色
-black|#none [dot=212121]@50,50,62|黑色
-white|#none [dot=ffffff]@50,50,62|白色
-circle|#none [circle]@50,50,62|圆形
-square|#none [square]@50,50,64|正方形
-triangle|#none [triangle]@50,52,70|三角形
-rectangle|#none [rectangle]@50,50,78|长方形
-star|#none [star]@50,52,74|星形
-heart|#none [heart]@50,52,72|心形`),
-U('数字 Numbers','🔢',`
-zero|#none [num=0]@50,50,64|零
-one|#none [num=1]@50,50,64|一
-two|#none [num=2]@50,50,64|二
-three|#none [num=3]@50,50,64|三
-four|#none [num=4]@50,50,64|四
-five|#none [num=5]@50,50,64|五
-six|#none [num=6]@50,50,64|六
-seven|#none [num=7]@50,50,64|七
-eight|#none [num=8]@50,50,64|八
-nine|#none [num=9]@50,50,64|九
-ten|#none [num=10]@50,50,64|十
-eleven|#none [num=11]@50,50,64|十一
-twelve|#none [num=12]@50,50,64|十二
-thirteen|#none [num=13]@50,50,64|十三
-fourteen|#none [num=14]@50,50,64|十四
-fifteen|#none [num=15]@50,50,64|十五`),
-U('身体 Body','✋',`
-eye|👁️|眼睛
-ear|👂|耳朵
-nose|👃|鼻子
-mouth|👄|嘴巴
-face|🙂|脸
-hair|💇|头发
-hand|✋|手
-arm|💪|手臂
-finger|☝️|手指
-leg|🦵|腿
-foot|🦶|脚
-tooth|🦷|牙齿
-tongue|👅|舌头
-bone|🦴|骨头
-brain|🧠|大脑`),
-U('人物 People','👪',`
-mom|👩|妈妈
-dad|👨|爸爸
-baby|👶|宝宝
-boy|👦|男孩
-girl|👧|女孩
-grandma|👵|奶奶
-grandpa|👴|爷爷
-friend|🧑‍🤝‍🧑|朋友
-family|👨‍👩‍👧‍👦|一家人
-teacher|🧑‍🏫|老师
-doctor|🧑‍⚕️|医生
-police officer|👮|警察
-firefighter|🧑‍🚒|消防员
-farmer|🧑‍🌾|农民
-cook|🧑‍🍳|厨师
-pilot|🧑‍✈️|飞行员`),
-U('玩具 Toys','🧸',`
-ball|⚽|球
-doll|🪆|娃娃
-teddy bear|🧸|泰迪熊
-kite|🪁|风筝
-balloon|🎈|气球
-robot|🤖|机器人
-drum|🥁|鼓
-puzzle|🧩|拼图
-yo-yo|🪀|悠悠球
-blocks|🧱|积木
-dice|🎲|骰子
-game|🎮|游戏
-toy car|🏎️|玩具汽车
-toy train|🚂|玩具火车`),
-U('衣服 Clothes','👕',`
-shirt|👕|衬衫
-pants|👖|裤子
-shorts|🩳|短裤
-dress|👗|裙子
-coat|🧥|外套
-hat|👒|帽子
-cap|🧢|棒球帽
-socks|🧦|袜子
-shoes|👞|鞋子
-sneakers|👟|运动鞋
-boots|👢|靴子
-gloves|🧤|手套
-scarf|🧣|围巾
-glasses|👓|眼镜
-bag|👜|包`),
-U('交通工具 Vehicles','🚗',`
-car|🚗|汽车
-bus|🚌|公交车
-train|🚆|火车
-plane|✈️|飞机
-boat|⛵|帆船
-ship|🚢|轮船
-bike|🚲|自行车
-truck|🚚|卡车
-taxi|🚕|出租车
-helicopter|🚁|直升机
-rocket|🚀|火箭
-motorcycle|🏍️|摩托车
-ambulance|🚑|救护车
-fire truck|🚒|消防车
-police car|🚓|警车`),
-U('蔬菜 Vegetables','🥕',`
-carrot|🥕|胡萝卜
-corn|🌽|玉米
-potato|🥔|土豆
-tomato|🍅|西红柿
-broccoli|🥦|西兰花
-onion|🧅|洋葱
-mushroom|🍄|蘑菇
-cucumber|🥒|黄瓜
-lettuce|🥬|生菜
-garlic|🧄|大蒜
-pepper|🌶️|辣椒
-sweet potato|🍠|红薯
-avocado|🥑|牛油果
-eggplant|🍆|茄子
-peanuts|🥜|花生`),
-U('家里 House','🏠',`
-house|🏠|房子
-door|🚪|门
-window|🪟|窗户
-bed|🛏️|床
-chair|🪑|椅子
-sofa|🛋️|沙发
-light|💡|灯
-TV|📺|电视
-phone|📱|手机
-key|🔑|钥匙
-clock|⏰|钟
-box|📦|箱子
-mirror|🪞|镜子
-bathtub|🛁|浴缸
-toilet|🚽|马桶
-soap|🧼|肥皂`),
-U('学校 School','🏫',`
-school|🏫|学校
-book|📖|书
-pencil|✏️|铅笔
-pen|🖊️|钢笔
-crayon|🖍️|蜡笔
-paper|📄|纸
-ruler|📏|尺子
-scissors|✂️|剪刀
-backpack|🎒|书包
-notebook|📓|笔记本
-computer|💻|电脑
-map|🗺️|地图
-globe|🌍|地球仪
-bell|🔔|铃
-paints|🎨|颜料`),
-U('天气 Weather','⛅',`
-sun|☀️|太阳
-moon|🌙|月亮
-star|⭐|星星
-cloud|☁️|云
-rain|🌧️|雨
-snow|❄️|雪
-wind|🌬️|风
-rainbow|🌈|彩虹
-storm|⛈️|暴风雨
-fog|🌫️|雾
-lightning|⚡|闪电
-tornado|🌪️|龙卷风
-umbrella|☂️|雨伞
-ice|🧊|冰
-snowman|⛄|雪人`),
-U('大自然 Nature','🌳',`
-tree|🌳|树
-flower|🌸|花
-leaf|🍃|叶子
-plant|🌱|植物
-rock|🪨|石头
-mountain|⛰️|山
-volcano|🌋|火山
-island|🏝️|小岛
-desert|🏜️|沙漠
-sea|🌊|大海
-beach|🏖️|海滩
-forest|🌲|森林
-cactus|🌵|仙人掌
-sunflower|🌻|向日葵
-rose|🌹|玫瑰`),
-U('动物园 Zoo','🦁',`
-lion|🦁|狮子
-tiger|🐯|老虎
-elephant|🐘|大象
-monkey|🐵|猴子
-giraffe|🦒|长颈鹿
-zebra|🦓|斑马
-panda|🐼|熊猫
-hippo|🦛|河马
-kangaroo|🦘|袋鼠
-snake|🐍|蛇
-gorilla|🦍|大猩猩
-rhino|🦏|犀牛
-wolf|🐺|狼
-deer|🦌|鹿
-squirrel|🐿️|松鼠
-camel|🐫|骆驼`),
-U('海洋和昆虫 Sea & Bugs','🐳',`
-whale|🐳|鲸鱼
-dolphin|🐬|海豚
-shark|🦈|鲨鱼
-octopus|🐙|章鱼
-crab|🦀|螃蟹
-turtle|🐢|乌龟
-seal|🦭|海豹
-penguin|🐧|企鹅
-bee|🐝|蜜蜂
-ant|🐜|蚂蚁
-butterfly|🦋|蝴蝶
-ladybug|🐞|瓢虫
-snail|🐌|蜗牛
-spider|🕷️|蜘蛛
-worm|🪱|虫子
-caterpillar|🐛|毛毛虫`),
-U('地方 Places','🏞️',`
-park|🏞️|公园
-zoo|🦁🦓|动物园
-farm|🚜|农场
-hospital|🏥|医院
-store|🏪|商店
-bank|🏦|银行
-hotel|🏨|酒店
-library|📚|图书馆
-museum|🏛️|博物馆
-castle|🏰|城堡
-bridge|🌉|桥
-tent|⛺|帐篷
-city|🏙️|城市
-stadium|🏟️|体育场
-airport|🛫|机场`),
-U('运动和音乐 Sports & Music','⚽',`
-soccer|⚽|足球
-basketball|🏀|篮球
-baseball|⚾|棒球
-tennis|🎾|网球
-golf|⛳|高尔夫
-bowling|🎳|保龄球
-volleyball|🏐|排球
-skateboard|🛹|滑板
-guitar|🎸|吉他
-piano|🎹|钢琴
-violin|🎻|小提琴
-trumpet|🎺|小号
-drums|🥁|架子鼓
-microphone|🎤|麦克风
-headphones|🎧|耳机
-music|🎵|音乐`),
-U('a / an + 名词','🅰️',`
-a dog|🐶|一只狗
-a cat|🐱|一只猫
-a ball|⚽|一个球
-a hat|👒|一顶帽子
-a bus|🚌|一辆公交车
-a car|🚗|一辆汽车
-a book|📖|一本书
-a kite|🪁|一只风筝
-a fish|🐟|一条鱼
-a cake|🍰|一块蛋糕
-an apple|🍎|一个苹果
-an egg|🥚|一个鸡蛋
-an owl|🦉|一只猫头鹰
-an ant|🐜|一只蚂蚁
-an orange|🍊|一个橙子
-an elephant|🐘|一头大象`),
-U('the + 名词','☀️',`
-the sun|☀️|太阳
-the moon|🌙|月亮
-the stars|✨|星星
-the sky|🌌|天空
-the sea|🌊|大海
-the tree|🌳|那棵树
-the house|🏠|那座房子
-the door|🚪|那扇门
-the bed|🛏️|那张床
-the park|🏞️|公园
-the rain|🌧️|雨
-the snow|❄️|雪
-the zoo|🦁|动物园
-the farm|🚜|农场
-the beach|🏖️|海滩
-the train|🚆|那列火车`),
-U('my + 名词','🙋',`
-my hat|🎩|我的帽子
-my bag|🎒|我的书包
-my books|📚|我的书
-my bike|🚲|我的自行车
-my ball|🏀|我的球
-my cat|🐈|我的猫
-my dog|🐕|我的狗
-my mom|👩|我的妈妈
-my dad|👨|我的爸爸
-my bed|🛏️|我的床
-my shoes|👟|我的鞋
-my cup|🥤|我的杯子
-my toys|🧸|我的玩具
-my friend|🧑‍🤝‍🧑|我的朋友
-my house|🏡|我的家
-my eyes|👀|我的眼睛`),
-U('数一数 How many','🐱',`
-one cat|🐱|一只猫
-two cats|🐱🐱|两只猫
-three cats|🐱🐱🐱|三只猫
-one dog|🐶|一只狗
-two dogs|🐶🐶|两只狗
-three dogs|🐶🐶🐶|三只狗
-two balls|⚽⚽|两个球
-three balls|⚽⚽⚽|三个球
-four stars|⭐⭐⭐⭐|四颗星星
-five ducks|🦆🦆🦆🦆🦆|五只鸭子
-four apples|🍎🍎🍎🍎|四个苹果
-five apples|🍎🍎🍎🍎🍎|五个苹果
-two birds|🐦🐦|两只鸟
-three fish|🐟🐟🐟|三条鱼
-six eggs|🥚🥚🥚🥚🥚🥚|六个鸡蛋
-two trees|🌳🌳|两棵树`),
-U('颜色 + 名词','🍏',`
-a red apple|🍎|一个红苹果
-a green apple|🍏|一个青苹果
-a red car|🚗|一辆红色的车
-a blue car|🚙|一辆蓝色的车
-a red heart|❤️|一颗红心
-a blue heart|💙|一颗蓝心
-a yellow heart|💛|一颗黄色的心
-a green book|📗|一本绿色的书
-a blue book|📘|一本蓝色的书
-a red book|📕|一本红色的书
-a pink pig|🐷|一头粉色的猪
-a yellow duck|🐥|一只黄色的鸭子
-a green frog|🐸|一只绿色的青蛙
-a brown bear|🐻|一只棕色的熊
-a black cat|🐈‍⬛|一只黑色的猫
-a white sheep|🐑|一只白色的羊`),
-U('大和小 Big & Small','🐘',`
-a big dog|#sky 🐕@50,54,66|一只大狗
-a small dog|#sky 🐕@50,68,20|一只小狗
-a big ball|#sky ⚽@50,48,62|一个大球
-a small ball|#sky ⚽@50,66,18|一个小球
-a big fish|#water 🐟@50,50,66|一条大鱼
-a small fish|#water 🐟@50,50,18|一条小鱼
-a big tree|#sky 🌳@50,44,80|一棵大树
-a small tree|#sky 🌳@50,64,26|一棵小树
-a big cat|#sky 🐈@50,54,62|一只大猫
-a small cat|#sky 🐈@50,68,20|一只小猫
-a fast car|🏎️💨|一辆很快的车
-a slow snail|🐌|一只很慢的蜗牛
-a happy face|😀|一张开心的脸
-a sad face|😢|一张难过的脸
-a hot drink|☕|一杯热饮
-a cold drink|🧋|一杯冷饮`),
-U('动作 1 Actions','🏃',`
-run|🏃|跑
-walk|🚶|走
-jump|🤸|跳
-swim|🏊|游泳
-sleep|😴|睡觉
-eat|🍽️|吃
-drink|🥤|喝
-sing|🎤|唱歌
-dance|💃|跳舞
-cry|😭|哭
-laugh|😂|笑
-clap|👏|拍手
-wave|👋|挥手
-read|📖|读
-write|✍️|写
-ride|🚴|骑`),
-U('动作 2 Actions','🧗',`
-sit|🧘|坐
-stand|🧍|站
-climb|🧗|爬
-hug|🤗|拥抱
-look|👀|看
-listen|👂|听
-talk|🗣️|说话
-think|🤔|想
-cook|🍳|做饭
-draw|🎨|画画
-kick|🦵|踢
-throw|🤾|扔
-wash|🧼|洗
-brush|🪥|刷
-smile|😊|微笑
-point|👉|指`)
+{id:'aa',name:'AA',title:'主题短语',c:'#58cc02',cd:'#58a700',units:[
+U('My Family · 我的家人','👪',`
+my *mom*|👩|我的妈妈
+my *dad*|👨|我的爸爸
+my *sister*|👧|我的姐妹
+my *brother*|👦|我的兄弟
+my *baby sister*|👶|我的小妹妹
+my *grandma*|👵|我的奶奶
+my *grandpa*|👴|我的爷爷
+my *family*|👨‍👩‍👧‍👦|我的家人`,`
+Who is a baby?|谁是小宝宝？|my baby sister|my grandma;my dad;my brother
+Who is old?|谁年纪大？|my grandpa|my baby sister;my sister;my brother
+Who is a girl?|谁是女孩？|my sister|my dad;my brother;my grandpa
+Who is a boy?|谁是男孩？|my brother|my mom;my sister;my grandma
+Which one is the whole family?|哪张是全家人？|my family|my mom;my dad;my baby sister`),
+U('Pets · 宠物','🐶',`
+a *cat*|🐱|一只猫
+a *dog*|🐶|一只狗
+a *fish*|🐠|一条鱼
+a *bird*|🐦|一只鸟
+a *rabbit*|🐰|一只兔子
+a *hamster*|🐹|一只仓鼠
+a *turtle*|🐢|一只乌龟
+a *lizard*|🦎|一只蜥蜴`,`
+Which pet can swim?|哪只宠物会游泳？|a fish|a cat;a hamster;a rabbit
+Which pet can fly?|哪只宠物会飞？|a bird|a dog;a turtle;a lizard
+Which pet says woof?|哪只宠物会汪汪叫？|a dog|a cat;a fish;a bird
+Which pet says meow?|哪只宠物会喵喵叫？|a cat|a dog;a rabbit;a turtle
+Which pet has long ears?|哪只宠物有长耳朵？|a rabbit|a fish;a lizard;a bird
+Which pet is very slow?|哪只宠物走得很慢？|a turtle|a dog;a rabbit;a bird`),
+U('Fruit · 水果','🍎',`
+an *apple*|🍎|一个苹果
+a *banana*|🍌|一根香蕉
+an *orange*|🍊|一个橙子
+a *pear*|🍐|一个梨
+a *peach*|🍑|一个桃子
+some *grapes*|🍇|一些葡萄
+some *cherries*|🍒|一些樱桃
+a *watermelon*|🍉|一个西瓜`,`
+Which fruit is yellow?|哪个水果是黄色的？|a banana|an apple;some grapes;a watermelon
+Which fruit is purple?|哪个水果是紫色的？|some grapes|a banana;an orange;a pear
+Which fruit is very big?|哪个水果很大？|a watermelon|some cherries;some grapes;a peach
+Which one is not a fruit?|哪个不是水果？|=🚗|an apple;a pear;a banana
+Which fruit is orange?|哪个水果是橙色的？|an orange|a pear;some cherries;some grapes`),
+U('Toys · 玩具','🧸',`
+a *ball*|⚽|一个球
+a *doll*|🪆|一个娃娃
+a *teddy bear*|🧸|一只泰迪熊
+a *kite*|🪁|一只风筝
+a *robot*|🤖|一个机器人
+a *drum*|🥁|一面鼓
+a *yo-yo*|🪀|一个悠悠球
+some *blocks*|🧱|一些积木`,`
+Which toy can fly in the sky?|哪个玩具能飞上天？|a kite|a ball;a drum;some blocks
+Which toy can you kick?|哪个玩具可以用脚踢？|a ball|a kite;a robot;a teddy bear
+Which toy goes boom boom?|哪个玩具会咚咚响？|a drum|a doll;a yo-yo;a kite
+Which toy can you hug in bed?|哪个玩具可以抱着睡觉？|a teddy bear|some blocks;a drum;a robot
+What can you build a house with?|用什么可以搭房子？|some blocks|a ball;a kite;a yo-yo`),
+U('My Body · 我的身体','👀',`
+my *eyes*|👀|我的眼睛
+my *ears*|👂|我的耳朵
+my *nose*|👃|我的鼻子
+my *mouth*|👄|我的嘴巴
+my *hands*|👐|我的双手
+my *feet*|🦶|我的脚
+my *teeth*|🦷|我的牙齿
+my *hair*|💇|我的头发`,`
+What do you see with?|你用什么看东西？|my eyes|my ears;my feet;my teeth
+What do you hear with?|你用什么听声音？|my ears|my nose;my hands;my mouth
+What do you smell with?|你用什么闻气味？|my nose|my eyes;my feet;my hair
+What do you walk with?|你用什么走路？|my feet|my hands;my ears;my teeth
+What do you brush every day?|你每天刷什么？|my teeth|my feet;my ears;my nose
+What do you clap with?|你用什么拍手？|my hands|my feet;my nose;my eyes`),
+U('Red · 红色','❤️',`
+a red *apple*|🍎|一个红苹果
+a red *car*|🚗|一辆红色的车
+a red *heart*|❤️|一颗红心
+a red *rose*|🌹|一朵红玫瑰
+a red *strawberry*|🍓|一颗红草莓
+a red *balloon*|🎈|一个红气球
+a red *fire truck*|🚒|一辆红色消防车
+a red *tomato*|🍅|一个红西红柿`,`
+Which one can you eat?|哪个可以吃？|a red strawberry|a red car;a red balloon;a red fire truck
+Which one goes on the road?|哪个在马路上跑？|a red car|a red rose;a red heart;a red tomato
+Which one is a flower?|哪个是花？|a red rose|a red apple;a red balloon;a red car
+Which one can fly up in the sky?|哪个能飞上天？|a red balloon|a red tomato;a red heart;a red fire truck
+Which one is red?|哪个是红色的？|=🍎|=🍌;=🥦;=🫐
+Which one helps put out fires?|哪个能救火？|a red fire truck|a red car;a red rose;a red apple`),
+U('Yellow · 黄色','💛',`
+a yellow *banana*|🍌|一根黄香蕉
+a yellow *sun*|☀️|一个黄太阳
+a yellow *lemon*|🍋|一个黄柠檬
+a yellow *star*|⭐|一颗黄星星
+a yellow *taxi*|🚕|一辆黄色出租车
+a yellow *flower*|🌻|一朵黄花
+a yellow *chick*|🐤|一只黄色小鸡
+yellow *cheese*|🧀|黄色的奶酪`,`
+What shines in the sky in the day?|白天什么在天上发光？|a yellow sun|a yellow lemon;a yellow taxi;yellow cheese
+Which one is sour?|哪个是酸的？|a yellow lemon|a yellow banana;yellow cheese;a yellow star
+Which one can you ride in?|哪个可以坐？|a yellow taxi|a yellow flower;a yellow chick;a yellow sun
+Which one is a baby bird?|哪个是小鸟宝宝？|a yellow chick|a yellow star;a yellow taxi;a yellow banana
+Which one is yellow?|哪个是黄色的？|=🍌|=🍎;=🍇;=🥦
+What shines at night?|晚上什么闪闪发光？|a yellow star|a yellow sun;yellow cheese;a yellow flower`),
+U('Green · 绿色','💚',`
+a green *frog*|🐸|一只绿青蛙
+a green *leaf*|🍃|一片绿叶子
+a green *tree*|🌳|一棵绿树
+a green *turtle*|🐢|一只绿乌龟
+a green *apple*|🍏|一个青苹果
+a green *snake*|🐍|一条绿蛇
+a green *cactus*|🌵|一棵绿色仙人掌
+green *broccoli*|🥦|绿色的西兰花`,`
+Which one can jump?|哪个会跳？|a green frog|a green tree;a green cactus;green broccoli
+Which one has no legs?|哪个没有腿？|a green snake|a green frog;a green turtle;=🦎
+Which one is a vegetable?|哪个是蔬菜？|green broccoli|a green apple;a green leaf;a green frog
+Which one is prickly?|哪个扎手？|a green cactus|a green leaf;a green apple;green broccoli
+Which one is green?|哪个是绿色的？|=🍏|=🍎;=🍋;=🍇
+Which one is very tall?|哪个很高？|a green tree|a green frog;a green leaf;a green apple`),
+U('Blue · 蓝色','💙',`
+a blue *whale*|🐳|一头蓝鲸
+a blue *car*|🚙|一辆蓝色的车
+a blue *book*|📘|一本蓝色的书
+the blue *sea*|🌊|蓝色的大海
+a blue *bird*|🐦|一只蓝色的鸟
+a blue *heart*|💙|一颗蓝心
+blue *jeans*|👖|蓝色牛仔裤
+a blue *fish*|🐟|一条蓝色的鱼`,`
+Which one is the biggest?|哪个最大？|a blue whale|a blue fish;a blue bird;a blue book
+Which one can you read?|哪个可以读？|a blue book|a blue car;blue jeans;a blue heart
+Which one can you wear?|哪个可以穿？|blue jeans|a blue book;a blue car;a blue fish
+Which one can fly?|哪个会飞？|a blue bird|a blue fish;a blue whale;a blue car
+Which one is blue?|哪个是蓝色的？|=💙|=❤️;=💛;=💚`),
+U('Count · 数一数','🔢',`
+*one* sun|☀️|一个太阳
+*two* eyes|👀|两只眼睛
+*three* pigs|🐷🐷🐷|三只猪
+*four* apples|🍎🍎🍎🍎|四个苹果
+*five* fingers|🖐️|五根手指
+*six* eggs|🥚🥚🥚🥚🥚🥚|六个鸡蛋
+*seven* stars|⭐⭐⭐⭐⭐⭐⭐|七颗星星
+*eight* legs|🐙|八条腿
+*nine* balls|⚽⚽⚽⚽⚽⚽⚽⚽⚽|九个球
+*ten* toes|🦶🦶|十个脚趾`,`
+Show me three.|找出三个。|=🐶🐶🐶|=🐶🐶;=🐶🐶🐶🐶;=🐶
+Show me five.|找出五个。|=⭐⭐⭐⭐⭐|=⭐⭐⭐;=⭐⭐⭐⭐;=⭐⭐
+Who has eight legs?|谁有八条腿？|=🐙|=🐶;=🐦;=🐟
+Show me one.|找出一个。|=🍎|=🍎🍎;=🍎🍎🍎;=🍎🍎🍎🍎
+Show me four.|找出四个。|=🦆🦆🦆🦆|=🦆🦆;=🦆🦆🦆;=🦆🦆🦆🦆🦆
+Show me two.|找出两个。|=🚗🚗|=🚗;=🚗🚗🚗;=🚗🚗🚗🚗🚗`),
+U('Big · 大','🐘',`
+a big *house*|🏠|一座大房子
+a big *elephant*|🐘|一头大象
+a big *truck*|🚚|一辆大卡车
+a big *whale*|🐋|一头大鲸鱼
+a big *tree*|🌳|一棵大树
+a big *ship*|🚢|一艘大轮船
+a big *bear*|🐻|一只大熊
+a big *dinosaur*|🦕|一只大恐龙`,`
+Which one is big?|哪个是大的？|=#sky 🐘@50,52,72|=#sky 🐭@50,68,22;=#sky 🐜@50,70,16;=#sky 🐤@50,68,22
+Which big one lives in the sea?|哪个大家伙住在海里？|a big whale|a big bear;a big truck;a big house
+Which big one can you live in?|哪个大东西可以住人？|a big house|a big ship;a big tree;a big elephant
+Which big one goes on the water?|哪个大东西在水上走？|a big ship|a big truck;a big house;a big dinosaur
+Which big animal lived long ago?|哪个大动物生活在很久以前？|a big dinosaur|a big bear;a big elephant;a big whale`),
+U('Little · 小','🐭',`
+a little *mouse*|🐭|一只小老鼠
+a little *chick*|🐤|一只小鸡
+a little *baby*|👶|一个小宝宝
+a little *fish*|🐟|一条小鱼
+a little *bird*|🐦|一只小鸟
+a little *frog*|🐸|一只小青蛙
+a little *bunny*|🐇|一只小兔子
+a little *bug*|🐛|一只小虫子`,`
+Which one is little?|哪个是小的？|=#sky 🐭@50,68,20|=#sky 🐘@50,52,72;=#sky 🦒@50,44,80;=#water 🐋@50,50,72
+Which little one says peep peep?|哪个小家伙会叽叽叫？|a little chick|a little fish;a little bug;a little frog
+Which little one likes cheese?|哪个小家伙爱吃奶酪？|a little mouse|a little bird;a little baby;a little fish
+Which little one hops and has long ears?|哪个小家伙会蹦、耳朵长长的？|a little bunny|a little mouse;a little fish;a little bug
+Which little one drinks from a bottle?|哪个小家伙用奶瓶喝奶？|a little baby|a little frog;a little chick;a little bunny
+Which little one lives in water?|哪个小家伙住在水里？|a little fish|a little bird;a little mouse;a little bunny`),
+U('On the Farm · 农场','🐄',`
+the *cow*|🐮|奶牛
+the *pig*|🐷|猪
+the *horse*|🐴|马
+the *sheep*|🐑|绵羊
+the *goat*|🐐|山羊
+the *hen*|🐔|母鸡
+the *duck*|🦆|鸭子
+the *tractor*|🚜|拖拉机`,`
+Who says moo?|谁会哞哞叫？|the cow|the pig;the duck;the hen
+Who says oink?|谁会哼哼叫？|the pig|the cow;the goat;the horse
+Who says quack?|谁会嘎嘎叫？|the duck|the hen;the sheep;the pig
+Who gives us eggs?|谁给我们下蛋？|the hen|the horse;the cow;the goat
+Who gives us milk?|谁给我们产奶？|the cow|the duck;the hen;the tractor
+Who gives us wool?|谁身上长羊毛？|the sheep|the pig;the duck;the horse`),
+U('At the Zoo · 动物园','🦁',`
+a *lion*|🦁|一只狮子
+a *tiger*|🐯|一只老虎
+an *elephant*|🐘|一头大象
+a *monkey*|🐵|一只猴子
+a *giraffe*|🦒|一只长颈鹿
+a *zebra*|🦓|一匹斑马
+a *panda*|🐼|一只熊猫
+a *hippo*|🦛|一头河马`,`
+Who has a long neck?|谁的脖子很长？|a giraffe|a hippo;a lion;a panda
+Who has a long nose?|谁的鼻子很长？|an elephant|a zebra;a monkey;a tiger
+Who has black and white stripes?|谁身上有黑白条纹？|a zebra|a panda;a giraffe;a lion
+Who loves bananas?|谁最爱吃香蕉？|a monkey|a hippo;a tiger;an elephant
+Who eats bamboo?|谁吃竹子？|a panda|a lion;a zebra;a giraffe
+Who is the king of the animals?|谁是动物之王？|a lion|a monkey;a hippo;a panda`),
+U('Snack Time · 零食','🍪',`
+a *cookie*|🍪|一块饼干
+a *cupcake*|🧁|一个纸杯蛋糕
+a *donut*|🍩|一个甜甜圈
+some *popcorn*|🍿|一些爆米花
+some *candy*|🍬|一些糖果
+an *ice cream*|🍦|一个冰淇淋
+a *hot dog*|🌭|一个热狗
+a *pizza*|🍕|一块披萨`,`
+Which snack is cold?|哪个零食是冰的？|an ice cream|a hot dog;a cookie;some popcorn
+Which snack has a hole in the middle?|哪个零食中间有个洞？|a donut|a cupcake;a pizza;some candy
+What do you eat at the movies?|看电影时吃什么？|some popcorn|a pizza;a hot dog;a donut
+Which one is not a snack?|哪个不是零食？|=👟|a cookie;some candy;a cupcake
+Which snack has a sausage?|哪个零食里有香肠？|a hot dog|an ice cream;a donut;a cookie`),
+U('Breakfast · 早餐','🥞',`
+some *milk*|🥛|一些牛奶
+some *juice*|🧃|一些果汁
+some *bread*|🍞|一些面包
+an *egg*|🍳|一个煎鸡蛋
+a *pancake*|🥞|一张煎饼
+a *waffle*|🧇|一块华夫饼
+some *cereal*|🥣|一些麦片
+some *bacon*|🥓|一些培根`,`
+What comes from a cow?|哪个来自奶牛？|some milk|some juice;some bacon;a waffle
+What comes from a hen?|哪个来自母鸡？|an egg|some bread;a pancake;some cereal
+What do you eat in a bowl with milk?|哪个要倒上牛奶放在碗里吃？|some cereal|an egg;some bacon;some juice
+What is made from oranges?|哪个是用橙子做的？|some juice|some milk;some bread;a waffle
+What can you drink?|哪个可以喝？|some milk|some bread;some bacon;a pancake`),
+U('Vegetables · 蔬菜','🥕',`
+a *carrot*|🥕|一根胡萝卜
+a *potato*|🥔|一个土豆
+a *tomato*|🍅|一个西红柿
+an *onion*|🧅|一个洋葱
+some *corn*|🌽|一些玉米
+some *broccoli*|🥦|一些西兰花
+a *mushroom*|🍄|一个蘑菇
+a *cucumber*|🥒|一根黄瓜`,`
+Which one do rabbits love?|兔子最爱吃哪个？|a carrot|an onion;a mushroom;a potato
+Which one makes you cry when you cut it?|切哪个会让你流眼泪？|an onion|a tomato;a cucumber;some corn
+Which one is red?|哪个是红色的？|a tomato|a cucumber;some broccoli;a potato
+Which one looks like a little tree?|哪个长得像一棵小树？|some broccoli|a carrot;a mushroom;some corn
+Which one is long and green?|哪个又长又绿？|a cucumber|a tomato;an onion;a potato`),
+U('Clothes · 衣服','👕',`
+my *shirt*|👕|我的衬衫
+my *pants*|👖|我的裤子
+my *dress*|👗|我的裙子
+my *socks*|🧦|我的袜子
+my *shoes*|👟|我的鞋子
+my *hat*|👒|我的帽子
+my *coat*|🧥|我的外套
+my *boots*|👢|我的靴子`,`
+What do you wear on your head?|头上戴什么？|my hat|my socks;my pants;my shoes
+What do you put on your feet first?|脚上先穿什么？|my socks|my hat;my coat;my dress
+What do you wear on a cold day?|冷天穿什么？|my coat|my dress;my shirt;=🩳
+What do you wear in the rain?|下雨天脚上穿什么？|my boots|my hat;my shirt;my dress
+Which one is a dress?|哪个是裙子？|my dress|my pants;my socks;my coat`),
+U('Things That Go · 交通工具','🚗',`
+a *car*|🚗|一辆汽车
+a *bus*|🚌|一辆公交车
+a *train*|🚆|一列火车
+a *plane*|✈️|一架飞机
+a *boat*|⛵|一艘船
+a *bike*|🚲|一辆自行车
+a *truck*|🚚|一辆卡车
+a *rocket*|🚀|一枚火箭`,`
+Which one flies in the sky?|哪个在天上飞？|a plane|a bus;a boat;a bike
+Which one goes on water?|哪个在水上走？|a boat|a train;a car;a truck
+Which one goes to the moon?|哪个能去月球？|a rocket|a bike;a bus;a boat
+Which one has two wheels?|哪个只有两个轮子？|a bike|a car;a bus;a truck
+Which one goes on tracks?|哪个在铁轨上跑？|a train|a rocket;a plane;a bike`),
+U('The Classroom · 教室','🏫',`
+the *teacher*|🧑‍🏫|老师
+the *chair*|🪑|椅子
+the *book*|📖|书
+the *pencil*|✏️|铅笔
+the *crayons*|🖍️|蜡笔
+the *clock*|🕒|钟
+the *map*|🗺️|地图
+the *computer*|💻|电脑`,`
+Who helps us learn?|谁教我们学习？|the teacher|the clock;the chair;the map
+What do you sit on?|你坐在什么上面？|the chair|the book;the pencil;the computer
+What tells the time?|什么告诉我们时间？|the clock|the map;the crayons;the book
+What do you color with?|用什么涂颜色？|the crayons|the clock;the chair;the map
+What do you write with?|用什么写字？|the pencil|the book;the chair;the clock`),
+U('My School Bag · 我的书包','🎒',`
+my *backpack*|🎒|我的书包
+my *books*|📚|我的书
+my *notebook*|📓|我的笔记本
+my *ruler*|📏|我的尺子
+my *scissors*|✂️|我的剪刀
+my *pen*|🖊️|我的钢笔
+my *paints*|🎨|我的颜料
+my *lunch box*|🍱|我的午餐盒`,`
+What do you cut paper with?|用什么剪纸？|my scissors|my ruler;my pen;my books
+What do you draw a straight line with?|用什么画直线？|my ruler|my paints;my lunch box;my scissors
+Where is your lunch?|你的午饭在哪里？|my lunch box|my notebook;my backpack;my pen
+What do you carry on your back?|什么背在背上？|my backpack|my ruler;my paints;my scissors
+What do you paint a picture with?|用什么画一幅画？|my paints|my lunch box;my ruler;my notebook`),
+U('Shapes · 形状','🔺',`
+a *circle*|#none [circle]@50,50,62|一个圆形
+a *square*|#none [square]@50,50,64|一个正方形
+a *triangle*|#none [triangle]@50,52,70|一个三角形
+a *rectangle*|#none [rectangle]@50,50,78|一个长方形
+a *star*|#none [star]@50,52,74|一个星形
+a *heart*|#none [heart]@50,52,72|一个心形
+an *oval*|#none [oval]@50,50,74|一个椭圆形
+a *diamond*|#none [diamond]@50,50,66|一个菱形`,`
+Which one is round like a ball?|哪个像球一样圆？|a circle|a square;a triangle;a star
+Which one has three sides?|哪个有三条边？|a triangle|a square;a circle;an oval
+What shape is a slice of pizza?|一块披萨是什么形状？|a triangle|a heart;a circle;a rectangle
+What shape is an egg?|鸡蛋是什么形状？|an oval|a square;a star;a diamond
+What shape is a door?|门是什么形状？|a rectangle|a circle;a heart;a triangle
+Which shape means I love you?|哪个形状代表“我爱你”？|a heart|a star;a square;a diamond`),
+U('Feelings · 心情','😀',`
+a *happy* face|😀|一张开心的脸
+a *sad* face|😢|一张难过的脸
+an *angry* face|😠|一张生气的脸
+a *scared* face|😱|一张害怕的脸
+a *sleepy* face|😴|一张困困的脸
+a *silly* face|🤪|一张调皮的脸
+a *surprised* face|😮|一张惊讶的脸
+a *sick* face|🤒|一张生病的脸`,`
+How do you feel on your birthday?|过生日时是什么心情？|a happy face|a sad face;a sick face;an angry face
+How do you feel when you lose your toy?|丢了玩具是什么心情？|a sad face|a happy face;a silly face;a sleepy face
+How do you look at bedtime?|睡觉前是什么样子？|a sleepy face|a scared face;an angry face;a surprised face
+How do you look when you have a cold?|感冒时是什么样子？|a sick face|a happy face;a silly face;a surprised face
+How do you feel when you see a monster?|看到怪兽是什么心情？|a scared face|a sleepy face;a happy face;a sick face`),
+U('Move! · 动起来','🏃',`
+*run*|🏃|跑
+*walk*|🚶|走
+*jump*|🤸|跳
+*swim*|🏊|游泳
+*dance*|💃|跳舞
+*climb*|🧗|爬
+*ride*|🚴|骑车
+*kick*|🦵|踢`,`
+What do you do in the pool?|在游泳池里做什么？|swim|climb;ride;kick
+What do you do on a bike?|在自行车上做什么？|ride|swim;dance;walk
+What do you do to music?|听到音乐做什么？|dance|kick;climb;swim
+What do you do to a ball?|对着球做什么？|kick|swim;climb;ride
+What do you do up a tree?|上树要做什么？|climb|dance;swim;walk`),
+U('Bugs · 小虫子','🐞',`
+a *bee*|🐝|一只蜜蜂
+an *ant*|🐜|一只蚂蚁
+a *butterfly*|🦋|一只蝴蝶
+a *ladybug*|🐞|一只瓢虫
+a *snail*|🐌|一只蜗牛
+a *spider*|🕷️|一只蜘蛛
+a *worm*|🪱|一条虫子
+a *caterpillar*|🐛|一条毛毛虫`,`
+Which bug makes honey?|哪只虫子会酿蜂蜜？|a bee|an ant;a spider;a worm
+Which bug has eight legs?|哪只虫子有八条腿？|a spider|a bee;a butterfly;a snail
+Which bug carries its house?|哪只虫子背着自己的房子？|a snail|a ladybug;an ant;a caterpillar
+Which bug has beautiful wings?|哪只虫子有漂亮的翅膀？|a butterfly|a worm;a snail;an ant
+A caterpillar becomes a…|毛毛虫会变成……|a butterfly|a bee;a spider;a ladybug
+Which bug lives in the dirt and has no legs?|哪只虫子住在土里、没有腿？|a worm|a bee;a ladybug;a spider`),
+U('In the Sea · 海洋','🐳',`
+a *whale*|🐳|一头鲸鱼
+a *dolphin*|🐬|一只海豚
+a *shark*|🦈|一条鲨鱼
+an *octopus*|🐙|一只章鱼
+a *crab*|🦀|一只螃蟹
+a *seal*|🦭|一只海豹
+a *shrimp*|🦐|一只虾
+a *shell*|🐚|一个贝壳`,`
+Who has eight arms?|谁有八只手臂？|an octopus|a crab;a seal;a shark
+Who walks sideways?|谁横着走路？|a crab|a whale;a dolphin;a shrimp
+Who has big sharp teeth?|谁有又大又尖的牙齿？|a shark|a shell;a seal;a shrimp
+Which one is not an animal?|哪个不是动物？|a shell|a crab;a dolphin;a whale
+Who is the biggest?|谁最大？|a whale|a shrimp;a crab;a seal`),
+U('Weather · 天气','⛅',`
+the *sun*|☀️|太阳
+the *rain*|🌧️|雨
+the *snow*|❄️|雪
+the *wind*|🌬️|风
+a *cloud*|☁️|一朵云
+a *rainbow*|🌈|一道彩虹
+a *storm*|⛈️|一场暴风雨
+an *umbrella*|☂️|一把雨伞`,`
+What do you need when it rains?|下雨时需要什么？|an umbrella|the sun;the snow;a rainbow
+What is cold and white?|什么又冷又白？|the snow|the sun;a cloud;the rain
+What has many colors after the rain?|雨后什么有很多颜色？|a rainbow|the wind;a cloud;the snow
+What is hot and bright?|什么又热又亮？|the sun|the snow;the rain;the wind
+What can blow your hat away?|什么能把帽子吹走？|the wind|the sun;a rainbow;the snow`),
+U('Hot and Cold · 冷和热','🔥',`
+hot *soup*|🍲|热汤
+hot *tea*|🍵|热茶
+a hot *fire*|🔥|热热的火
+hot *cocoa*|☕|热可可
+cold *ice*|🧊|冰冷的冰块
+a cold *snowman*|⛄|冷冷的雪人
+cold *ice cream*|🍦|冰冰的冰淇淋
+cold *juice*|🧃|冰果汁`,`
+Which one is hot?|哪个是热的？|hot soup|cold ice;cold ice cream;a cold snowman
+Which one is cold?|哪个是冷的？|cold ice|a hot fire;hot tea;hot cocoa
+Do not touch! It is very hot!|别碰！很烫！是哪个？|a hot fire|cold ice cream;cold juice;a cold snowman
+Which one melts in the sun?|哪个在太阳下会化？|a cold snowman|hot soup;hot tea;a hot fire
+What do you drink on a cold day?|冷天喝什么？|hot cocoa|cold ice;cold ice cream;a cold snowman`),
+U('Good Night · 晚安','🌙',`
+my *bed*|🛏️|我的床
+a *story*|📖|一个故事
+the *moon*|🌙|月亮
+the *stars*|✨|星星
+a sweet *dream*|💭|一个甜甜的梦
+my *teddy bear*|🧸|我的泰迪熊
+the *light*|💡|灯
+a good night *kiss*|😘|一个晚安吻`,`
+Where do you sleep?|你在哪里睡觉？|my bed|the moon;a story;the light
+What do Mom and Dad read to you?|爸爸妈妈给你读什么？|a story|my bed;the stars;a sweet dream
+What do you see in the night sky?|夜空里能看见什么？|the moon|=☀️;=🌈;=🌧️
+What do you hug in bed?|在床上抱着什么？|my teddy bear|the light;the moon;a story
+What do you turn off at bedtime?|睡觉时关掉什么？|the light|my bed;my teddy bear;the stars`),
+U('Bath Time · 洗澡','🛁',`
+the *bathtub*|🛁|浴缸
+the *soap*|🧼|肥皂
+the *sponge*|🧽|海绵
+the *shower*|🚿|淋浴
+the *water*|💧|水
+a *toy duck*|🐤|一只玩具小鸭
+the *toothbrush*|🪥|牙刷
+the *mirror*|🪞|镜子`,`
+What makes bubbles?|什么能起泡泡？|the soap|the mirror;the toothbrush;the bathtub
+What do you brush your teeth with?|用什么刷牙？|the toothbrush|the sponge;the soap;a toy duck
+Where can you see yourself?|在哪里能看见自己？|the mirror|the shower;the water;the sponge
+What floats in the bath?|什么漂在澡盆里？|a toy duck|the mirror;the toothbrush;the shower
+What do you sit in for a bath?|洗澡时坐在哪里？|the bathtub|the mirror;the soap;the sponge`),
+U('The Kitchen · 厨房','🍳',`
+a *spoon*|🥄|一把勺子
+a *fork*|🍴|一把叉子
+a *bowl*|🥣|一个碗
+a *plate*|🍽️|一个盘子
+a *cup*|☕|一个杯子
+a *pan*|🍳|一口平底锅
+some *chopsticks*|🥢|一双筷子
+a *teapot*|🫖|一个茶壶`,`
+What do you eat soup with?|用什么喝汤？|a spoon|a fork;a plate;a teapot
+What do you eat noodles with in China?|中国人吃面条用什么？|some chopsticks|a cup;a bowl;a pan
+What do you cook an egg in?|用什么煎鸡蛋？|a pan|a cup;a spoon;a plate
+What do you pour tea from?|从什么里倒茶？|a teapot|a bowl;a fork;a pan
+What do you drink from?|用什么喝水？|a cup|a fork;a plate;a pan`),
+U('My House · 我的家','🏠',`
+the *door*|🚪|门
+the *window*|🪟|窗户
+the *sofa*|🛋️|沙发
+the *TV*|📺|电视
+the *bed*|🛏️|床
+the *toilet*|🚽|马桶
+the *key*|🔑|钥匙
+the *clock*|⏰|钟`,`
+What do you open to go in?|进去要打开什么？|the door|the TV;the sofa;the clock
+What do you watch?|你看什么节目？|the TV|the key;the window;the toilet
+What do you look out of?|从什么往外看？|the window|the bed;the key;the sofa
+What opens the door?|什么能开门？|the key|the clock;the TV;the window
+Where do you sit with your family?|和家人一起坐在哪里？|the sofa|the toilet;the door;the clock`),
+U('Sports · 运动','⚽',`
+a *soccer ball*|⚽|一个足球
+a *basketball*|🏀|一个篮球
+a *baseball*|⚾|一个棒球
+a *tennis ball*|🎾|一个网球
+a *football*|🏈|一个橄榄球
+a *volleyball*|🏐|一个排球
+a *skateboard*|🛹|一块滑板
+a *bowling ball*|🎳|一个保龄球`,`
+Which ball do you kick?|哪个球用脚踢？|a soccer ball|a basketball;a bowling ball;a baseball
+Which ball goes in a high basket?|哪个球要投进高高的篮筐？|a basketball|a tennis ball;a football;a soccer ball
+Which one has wheels?|哪个有轮子？|a skateboard|a baseball;a volleyball;a football
+Which ball is small and yellow-green?|哪个球小小的、黄绿色？|a tennis ball|a basketball;a bowling ball;a volleyball
+Which ball knocks down pins?|哪个球用来撞倒球瓶？|a bowling ball|a soccer ball;a tennis ball;a football`),
+U('Music · 音乐','🎵',`
+a *guitar*|🎸|一把吉他
+a *piano*|🎹|一架钢琴
+a *violin*|🎻|一把小提琴
+a *trumpet*|🎺|一把小号
+a *drum*|🥁|一面鼓
+a *saxophone*|🎷|一支萨克斯
+a *microphone*|🎤|一个麦克风
+some *headphones*|🎧|一副耳机`,`
+What do you sing into?|唱歌时对着什么？|a microphone|a drum;a piano;a guitar
+What do you hit to play?|哪个要用手敲？|a drum|a trumpet;a violin;some headphones
+What has black and white keys?|哪个有黑白琴键？|a piano|a guitar;a saxophone;a microphone
+What do you blow to play?|哪个要用嘴吹？|a trumpet|a piano;a drum;a guitar
+What do you wear on your ears?|哪个戴在耳朵上？|some headphones|a violin;a drum;a piano`),
+U('Helpers · 帮助我们的人','🧑‍⚕️',`
+the *doctor*|🧑‍⚕️|医生
+the *firefighter*|🧑‍🚒|消防员
+the *police officer*|👮|警察
+the *farmer*|🧑‍🌾|农民
+the *cook*|🧑‍🍳|厨师
+the *pilot*|🧑‍✈️|飞行员
+the *builder*|👷|建筑工人
+the *astronaut*|🧑‍🚀|宇航员`,`
+Who helps when you are sick?|生病时谁来帮你？|the doctor|the pilot;the cook;the builder
+Who puts out fires?|谁来灭火？|the firefighter|the farmer;the doctor;the astronaut
+Who flies a plane?|谁开飞机？|the pilot|the cook;the police officer;the farmer
+Who grows food?|谁种粮食？|the farmer|the builder;the pilot;the doctor
+Who goes to space?|谁去太空？|the astronaut|the firefighter;the cook;the farmer
+Who makes yummy food?|谁做好吃的饭？|the cook|the builder;the police officer;the astronaut`),
+U('In the Forest · 森林','🌲',`
+a *bear*|🐻|一只熊
+a *fox*|🦊|一只狐狸
+an *owl*|🦉|一只猫头鹰
+a *deer*|🦌|一只鹿
+a *wolf*|🐺|一只狼
+a *squirrel*|🐿️|一只松鼠
+a *raccoon*|🦝|一只浣熊
+a *hedgehog*|🦔|一只刺猬`,`
+Who is up at night and says hoot?|谁晚上不睡、咕咕叫？|an owl|a deer;a bear;a squirrel
+Who loves nuts?|谁爱吃坚果？|a squirrel|a wolf;a fox;an owl
+Who has spikes on its back?|谁背上有刺？|a hedgehog|a deer;a raccoon;a bear
+Who loves honey?|谁爱吃蜂蜜？|a bear|a hedgehog;an owl;a fox
+Who has antlers on its head?|谁头上长着角？|a deer|a wolf;a squirrel;a raccoon`),
+U('Birds · 鸟','🦜',`
+an *eagle*|🦅|一只老鹰
+a *parrot*|🦜|一只鹦鹉
+a *swan*|🦢|一只天鹅
+a *peacock*|🦚|一只孔雀
+a *flamingo*|🦩|一只火烈鸟
+a *penguin*|🐧|一只企鹅
+a *rooster*|🐓|一只公鸡
+a *dove*|🕊️|一只鸽子`,`
+Which bird can talk?|哪种鸟会学人说话？|a parrot|a swan;an eagle;a dove
+Which bird can not fly but can swim?|哪种鸟不会飞但会游泳？|a penguin|an eagle;a parrot;a dove
+Which bird is pink?|哪种鸟是粉色的？|a flamingo|a penguin;a rooster;an eagle
+Which bird says cock-a-doodle-doo?|哪种鸟会喔喔叫？|a rooster|a swan;a peacock;a parrot
+Which bird has a big beautiful tail?|哪种鸟有漂亮的大尾巴？|a peacock|a dove;a penguin;a swan`),
+U('At the Beach · 海滩','🏖️',`
+the *sea*|🌊|大海
+the *sand*|🏖️|沙滩
+a *shell*|🐚|一个贝壳
+some *sunglasses*|🕶️|一副太阳镜
+a *swimsuit*|🩱|一件泳衣
+a beach *umbrella*|⛱️|一把沙滩伞
+a *bucket*|🪣|一个小桶
+a *sandcastle*|🏰|一座沙堡`,`
+What do you build with sand?|用沙子堆什么？|a sandcastle|a swimsuit;the sea;some sunglasses
+What do you wear to swim?|游泳穿什么？|a swimsuit|some sunglasses;a bucket;a shell
+What keeps the sun out of your eyes?|什么挡住刺眼的阳光？|some sunglasses|a bucket;the sand;a shell
+What do you carry sand in?|用什么装沙子？|a bucket|a beach umbrella;the sea;a swimsuit
+What can you find on the sand?|在沙滩上能捡到什么？|a shell|=🚗;=🧸;=📺`),
+U('Winter · 冬天','⛄',`
+the *snow*|❄️|雪
+a *snowman*|⛄|一个雪人
+a *sled*|🛷|一个雪橇
+a *scarf*|🧣|一条围巾
+some *gloves*|🧤|一副手套
+some *skates*|⛸️|一双冰鞋
+some *skis*|🎿|一副滑雪板
+the *ice*|🧊|冰`,`
+What do you make with snow?|用雪堆什么？|a snowman|a sled;some gloves;the ice
+What keeps your hands warm?|什么让小手暖和？|some gloves|a scarf;some skis;a sled
+What keeps your neck warm?|什么让脖子暖和？|a scarf|some skates;the ice;a sled
+What do you ride down a snowy hill?|从雪坡上坐着什么滑下来？|a sled|a scarf;a snowman;some gloves
+What do you wear to skate on the ice?|在冰上滑冰穿什么？|some skates|some gloves;a scarf;a snowman`),
+U('Happy Birthday · 生日快乐','🎂',`
+a birthday *cake*|🎂|一个生日蛋糕
+some *candles*|🕯️|一些蜡烛
+a *gift*|🎁|一份礼物
+some *balloons*|🎈|一些气球
+a party *hat*|🥳|一顶派对帽
+a birthday *card*|💌|一张生日贺卡
+a *cupcake*|🧁|一个纸杯蛋糕
+my *friends*|🧑‍🤝‍🧑|我的朋友们`,`
+What do you blow out?|吹灭什么？|some candles|a gift;a party hat;some balloons
+What do you open?|拆开什么？|a gift|a birthday cake;some candles;my friends
+Who comes to your party?|谁来参加你的派对？|my friends|=🦁;=🦈;=🐍
+What do you write words on?|在什么上面写祝福？|a birthday card|a cupcake;some balloons;some candles
+What do you wear on your head at a party?|派对上头上戴什么？|a party hat|a gift;a birthday cake;some candles`),
+U('Holidays · 节日','🎄',`
+a *Christmas tree*|🎄|一棵圣诞树
+a *pumpkin*|🎃|一个南瓜灯
+*Santa*|🎅|圣诞老人
+some *fireworks*|🎆|一些烟花
+a red *lantern*|🏮|一个红灯笼
+a *mooncake*|🥮|一块月饼
+a red *envelope*|🧧|一个红包
+a *dragon*|🐲|一条龙`,`
+What do we see at Christmas?|圣诞节能看到什么？|a Christmas tree|a mooncake;a pumpkin;a red envelope
+What do we eat at the Mid-Autumn Festival?|中秋节吃什么？|a mooncake|a pumpkin;some fireworks;a red lantern
+Who brings gifts at Christmas?|圣诞节谁送礼物？|Santa|a dragon;a pumpkin;a mooncake
+What do kids get at Spring Festival?|春节小朋友会收到什么？|a red envelope|a Christmas tree;a pumpkin;Santa
+What goes boom in the night sky?|什么在夜空中砰砰响？|some fireworks|a red lantern;a mooncake;a red envelope
+What has a funny face at Halloween?|万圣节哪个有一张怪脸？|a pumpkin|a mooncake;Santa;a Christmas tree`),
+U('The Plant · 种植物','🌱',`
+the *dirt*|#none [dirt]@50,62,84|泥土
+a *shovel*|#none [shovel]@50,50,72|一把铲子
+a *hole*|🕳️|一个洞
+a *seed*|🌰|一颗种子
+the *rain*|🌧️|雨
+the *sunshine*|☀️|阳光
+a *baby plant*|🌱|一棵小苗
+a *flower*|🌸|一朵花`,`
+What do you dig with?|用什么挖土？|a shovel|a seed;a flower;the rain
+What do you put in the hole?|在洞里放什么？|a seed|the sunshine;a shovel;the rain
+What gives the plant water?|什么给植物浇水？|the rain|the dirt;a shovel;a hole
+What comes out of the seed first?|种子先长出什么？|a baby plant|a flower;=🍎;=🌳
+What keeps the plant warm?|什么让植物暖暖的？|the sunshine|the rain;a hole;the dirt`),
+U('Nature · 大自然','⛰️',`
+a *tree*|🌳|一棵树
+a *leaf*|🍃|一片叶子
+a *rock*|🪨|一块石头
+a *mountain*|⛰️|一座山
+a *river*|🏞️|一条河
+a *volcano*|🌋|一座火山
+an *island*|🏝️|一个小岛
+a *desert*|🏜️|一片沙漠`,`
+Which one has fire inside?|哪个里面有火热的岩浆？|a volcano|a river;a tree;a leaf
+Which one has water all around it?|哪个四周都是水？|an island|a mountain;a desert;a rock
+Which one falls from a tree?|什么从树上落下来？|a leaf|a rock;a volcano;a river
+Where do fish swim?|鱼在哪里游？|a river|a mountain;a rock;a desert
+Which one is very hot and dry with lots of sand?|哪里又热又干、全是沙子？|a desert|a river;an island;a tree`),
+U('In Town · 城里','🏙️',`
+the *park*|🏞️|公园
+the *store*|🏪|商店
+the *bank*|🏦|银行
+the *hospital*|🏥|医院
+the *school*|🏫|学校
+the *library*|📚|图书馆
+the *museum*|🏛️|博物馆
+the *zoo*|🦁|动物园`,`
+Where do you buy food?|在哪里买吃的？|the store|the bank;the museum;the library
+Where do you go when you are very sick?|病得很重去哪里？|the hospital|the park;the zoo;the store
+Where can you borrow books?|在哪里借书？|the library|the bank;the hospital;the zoo
+Where can you see lions?|在哪里能看到狮子？|the zoo|the school;the bank;the library
+Where do you go to learn?|去哪里上学？|the school|the hospital;the bank;the museum`),
+U('Story People · 童话人物','🧚',`
+a *king*|🤴|一位国王
+a *princess*|👸|一位公主
+a *fairy*|🧚|一个仙女
+a *wizard*|🧙|一个巫师
+a *mermaid*|🧜‍♀️|一条美人鱼
+a *dragon*|🐉|一条龙
+a *unicorn*|🦄|一只独角兽
+a *ghost*|👻|一个幽灵`,`
+Who wears a crown and rules the land?|谁戴王冠、管理国家？|a king|a ghost;a mermaid;a fairy
+Who has a fish tail?|谁有鱼尾巴？|a mermaid|a unicorn;a wizard;a princess
+Who breathes fire?|谁会喷火？|a dragon|a fairy;a king;a ghost
+Who has one horn?|谁头上有一只角？|a unicorn|a dragon;a princess;a mermaid
+Who has tiny wings and a magic wand?|谁有小翅膀和魔法棒？|a fairy|a king;a ghost;a dragon
+Who says boo?|谁会“嘣”地吓人一跳？|a ghost|a princess;a unicorn;a king`)
 ]},
-{id:'A',name:'A',title:'简单句子',c:'#1cb0f6',cd:'#1899d6',units:[
-U('这是 This is a…','👆',`
-This is a cat.|🐱|这是一只猫。
-This is a dog.|🐶|这是一只狗。
-This is a pig.|🐷|这是一头猪。
-This is a cow.|🐮|这是一头奶牛。
-This is a duck.|🦆|这是一只鸭子。
-This is a fish.|🐟|这是一条鱼。
-This is a bird.|🐦|这是一只鸟。
-This is a frog.|🐸|这是一只青蛙。
-This is a car.|🚗|这是一辆汽车。
-This is a bus.|🚌|这是一辆公交车。
-This is a ball.|⚽|这是一个球。
-This is a book.|📖|这是一本书。
-This is a hat.|👒|这是一顶帽子。
-This is a cup.|☕|这是一个杯子。
-This is a bed.|🛏️|这是一张床。
-This is a kite.|🪁|这是一只风筝。`),
-U('我看见 I see a…','👀',`
-I see a lion.|🦁|我看见一只狮子。
-I see a tiger.|🐯|我看见一只老虎。
-I see a monkey.|🐵|我看见一只猴子。
-I see a zebra.|🦓|我看见一匹斑马。
-I see a giraffe.|🦒|我看见一只长颈鹿。
-I see a bear.|🐻|我看见一只熊。
-I see a snake.|🐍|我看见一条蛇。
-I see a whale.|🐳|我看见一头鲸鱼。
-I see a shark.|🦈|我看见一条鲨鱼。
-I see a crab.|🦀|我看见一只螃蟹。
-I see a bee.|🐝|我看见一只蜜蜂。
-I see a butterfly.|🦋|我看见一只蝴蝶。
-I see a spider.|🕷️|我看见一只蜘蛛。
-I see a rabbit.|🐰|我看见一只兔子。
-I see a horse.|🐴|我看见一匹马。
-I see a sheep.|🐑|我看见一只羊。`),
-U('看 Look at the…','🌈',`
-Look at the sun.|☀️|看太阳。
-Look at the moon.|🌙|看月亮。
-Look at the stars.|✨|看星星。
-Look at the rainbow.|🌈|看彩虹。
-Look at the cloud.|☁️|看那朵云。
-Look at the rain.|🌧️|看那场雨。
-Look at the snow.|❄️|看那些雪。
-Look at the tree.|🌳|看那棵树。
-Look at the flower.|🌸|看那朵花。
-Look at the sea.|🌊|看大海。
-Look at the mountain.|⛰️|看那座山。
-Look at the boat.|⛵|看那艘船。
-Look at the plane.|✈️|看那架飞机。
-Look at the train.|🚆|看那列火车。
-Look at the rocket.|🚀|看那枚火箭。
-Look at the fireworks.|🎆|看烟花。`),
-U('它是 It is a / an…','🦉',`
-It is an apple.|🍎|它是一个苹果。
-It is an egg.|🥚|它是一个鸡蛋。
-It is an owl.|🦉|它是一只猫头鹰。
-It is an ant.|🐜|它是一只蚂蚁。
-It is an orange.|🍊|它是一个橙子。
-It is an elephant.|🐘|它是一头大象。
-It is an ice cream.|🍦|它是一个冰淇淋。
-It is an octopus.|🐙|它是一只章鱼。
-It is a fox.|🦊|它是一只狐狸。
-It is a bee.|🐝|它是一只蜜蜂。
-It is a cake.|🍰|它是一块蛋糕。
-It is a key.|🔑|它是一把钥匙。
-It is a drum.|🥁|它是一面鼓。
-It is a robot.|🤖|它是一个机器人。
-It is a doll.|🪆|它是一个娃娃。
-It is a clock.|⏰|它是一个钟。`),
-U('我喜欢 I like…','😋',`
-I like apples.|🍎|我喜欢苹果。
-I like bananas.|🍌|我喜欢香蕉。
-I like grapes.|🍇|我喜欢葡萄。
-I like cookies.|🍪|我喜欢饼干。
-I like pizza.|🍕|我喜欢披萨。
-I like cake.|🍰|我喜欢蛋糕。
-I like milk.|🥛|我喜欢牛奶。
-I like carrots.|🥕|我喜欢胡萝卜。
-I like eggs.|🥚|我喜欢鸡蛋。
-I like rice.|🍚|我喜欢米饭。
-I like noodles.|🍜|我喜欢面条。
-I like ice cream.|🍦|我喜欢冰淇淋。
-I like strawberries.|🍓|我喜欢草莓。
-I like watermelon.|🍉|我喜欢西瓜。
-I like corn.|🌽|我喜欢玉米。
-I like cheese.|🧀|我喜欢奶酪。`),
-U('这是我的 This is my…','🙋',`
-This is my mom.|👩|这是我的妈妈。
-This is my dad.|👨|这是我的爸爸。
-This is my baby.|👶|这是我的宝宝。
-This is my grandma.|👵|这是我的奶奶。
-This is my grandpa.|👴|这是我的爷爷。
-This is my friend.|🧑‍🤝‍🧑|这是我的朋友。
-This is my teacher.|🧑‍🏫|这是我的老师。
-This is my dog.|🐶|这是我的狗。
-This is my cat.|🐱|这是我的猫。
-This is my bag.|🎒|这是我的书包。
-This is my bike.|🚲|这是我的自行车。
-This is my bed.|🛏️|这是我的床。
-This is my house.|🏠|这是我的家。
-This is my teddy bear.|🧸|这是我的泰迪熊。
-This is my school.|🏫|这是我的学校。
-This is my family.|👨‍👩‍👧‍👦|这是我的家人。`),
-U('我有 I have a…','🎁',`
-I have a doll.|🪆|我有一个娃娃。
-I have a robot.|🤖|我有一个机器人。
-I have a car.|🚗|我有一辆汽车。
-I have a train.|🚂|我有一列火车。
-I have a drum.|🥁|我有一面鼓。
-I have a puzzle.|🧩|我有一个拼图。
-I have a balloon.|🎈|我有一个气球。
-I have a yo-yo.|🪀|我有一个悠悠球。
-I have a pencil.|✏️|我有一支铅笔。
-I have a crayon.|🖍️|我有一支蜡笔。
-I have a ruler.|📏|我有一把尺子。
-I have a book.|📖|我有一本书。
-I have a backpack.|🎒|我有一个书包。
-I have a hat.|👒|我有一顶帽子。
-I have a dog.|🐕|我有一只狗。
-I have a fish.|🐠|我有一条鱼。`),
-U('在这里 Here is the…','👉',`
-Here is the key.|🔑|钥匙在这里。
-Here is the cup.|☕|杯子在这里。
-Here is the shoe.|👟|鞋子在这里。
-Here is the hat.|🎩|帽子在这里。
-Here is the sock.|🧦|袜子在这里。
-Here is the spoon.|🥄|勺子在这里。
-Here is the bag.|👜|包在这里。
-Here is the map.|🗺️|地图在这里。
-Here is the toy.|🧸|玩具在这里。
-Here is the box.|📦|箱子在这里。
-Here is the clock.|⏰|钟在这里。
-Here is the phone.|📱|手机在这里。
-Here is the bell.|🔔|铃在这里。
-Here is the gift.|🎁|礼物在这里。
-Here is the egg.|🥚|鸡蛋在这里。`),
-U('我会 I can…','💪',`
-I can run.|🏃|我会跑。
-I can jump.|🤸|我会跳。
-I can swim.|🏊|我会游泳。
-I can sing.|🎤|我会唱歌。
-I can dance.|💃|我会跳舞。
-I can read.|📖|我会读书。
-I can write.|✍️|我会写字。
-I can draw.|🎨|我会画画。
-I can climb.|🧗|我会爬。
-I can clap.|👏|我会拍手。
-I can skate.|⛸️|我会滑冰。
-I can ski.|⛷️|我会滑雪。
-I can cook.|🍳|我会做饭。
-I can ride a bike.|🚴|我会骑自行车。
-I can fly a kite.|🪁|我会放风筝。
-I can play ball.|⚽|我会玩球。`),
-U('我是 I am…','😀',`
-I am happy.|😀|我很开心。
-I am sad.|😢|我很难过。
-I am angry.|😠|我很生气。
-I am scared.|😱|我很害怕。
-I am sleepy.|😴|我很困。
-I am sick.|🤒|我生病了。
-I am hot.|🥵|我很热。
-I am cold.|🥶|我很冷。
-I am hungry.|🤤|我饿了。
-I am tired.|😫|我很累。
-I am silly.|🤪|我很调皮。
-I am shy.|😳|我很害羞。
-I am five.|🖐️|我五岁了。
-I am a boy.|👦|我是一个男孩。
-I am a girl.|👧|我是一个女孩。`),
-U('我们 We…','👫',`
-We play ball.|⚽👫|我们玩球。
-We swim.|🏊🏊|我们游泳。
-We run.|🏃🏃|我们跑步。
-We dance.|👯|我们跳舞。
-We sing.|🎤🎶|我们唱歌。
-We eat.|🍽️|我们吃饭。
-We read.|📚|我们读书。
-We draw.|🎨🖍️|我们画画。
-We clap.|👏👏|我们拍手。
-We jump.|🤸🤸|我们跳。
-We cook.|🍳|我们做饭。
-We ride bikes.|🚲🚲|我们骑自行车。
-We wave.|👋👋|我们挥手。
-We laugh.|😂😂|我们笑。
-We walk.|🚶🚶|我们走路。`),
-U('数一数 I see two…','🔢',`
-I see one sun.|☀️|我看见一个太阳。
-I see two cats.|🐱🐱|我看见两只猫。
-I see three dogs.|🐶🐶🐶|我看见三只狗。
-I see four birds.|🐦🐦🐦🐦|我看见四只鸟。
-I see five fish.|🐟🐟🐟🐟🐟|我看见五条鱼。
-I see two cars.|🚗🚗|我看见两辆车。
-I see three balls.|⚽⚽⚽|我看见三个球。
-I see four eggs.|🥚🥚🥚🥚|我看见四个鸡蛋。
-I see five stars.|⭐⭐⭐⭐⭐|我看见五颗星星。
-I see two trees.|🌳🌳|我看见两棵树。
-I see three ducks.|🦆🦆🦆|我看见三只鸭子。
-I see one moon.|🌙|我看见一个月亮。
-I see six apples.|🍎🍎🍎🍎🍎🍎|我看见六个苹果。
-I see two frogs.|🐸🐸|我看见两只青蛙。
-I see three bees.|🐝🐝🐝|我看见三只蜜蜂。
-I see four boats.|⛵⛵⛵⛵|我看见四艘船。`),
-U('什么颜色 The … is red.','🍌',`
-The apple is red.|🍎|苹果是红色的。
-The banana is yellow.|🍌|香蕉是黄色的。
-The leaf is green.|🍃|叶子是绿色的。
-The sea is blue.|🌊|大海是蓝色的。
-The snow is white.|❄️|雪是白色的。
-The grapes are purple.|🍇|葡萄是紫色的。
-The carrot is orange.|🥕|胡萝卜是橙色的。
-The chocolate is brown.|🍫|巧克力是棕色的。
-The cat is black.|🐈‍⬛|这只猫是黑色的。
-The pig is pink.|🐷|这头猪是粉色的。
-The elephant is gray.|🐘|大象是灰色的。
-The frog is green.|🐸|青蛙是绿色的。
-The sun is yellow.|☀️|太阳是黄色的。
-The car is red.|🚗|这辆车是红色的。
-The milk is white.|🥛|牛奶是白色的。`),
-U('天气 It is sunny.','⛅',`
-It is sunny.|☀️|今天是晴天。
-It is rainy.|🌧️|今天下雨。
-It is snowy.|☃️|今天下雪。
-It is windy.|🌬️|今天刮风。
-It is cloudy.|☁️|今天多云。
-It is hot.|🥵|天气很热。
-It is cold.|🥶|天气很冷。
-It is foggy.|🌫️|今天有雾。
-It is stormy.|⛈️|今天有暴风雨。
-It is warm.|🌤️|天气很暖和。
-It is icy.|🧊|路上结冰了。
-It is night.|🌃|现在是晚上。
-It is morning.|🌅|现在是早上。
-It is fun.|🎢|真好玩。`),
-U('我去 I go to…','🏫',`
-I go to the park.|🏞️|我去公园。
-I go to the zoo.|🦁|我去动物园。
-I go to the beach.|🏖️|我去海滩。
-I go to the store.|🏪|我去商店。
-I go to the farm.|🚜|我去农场。
-I go to the library.|📚|我去图书馆。
-I go to the hospital.|🏥|我去医院。
-I go to the museum.|🏛️|我去博物馆。
-I go to the bank.|🏦|我去银行。
-I go to the castle.|🏰|我去城堡。
-I go to the airport.|🛫|我去机场。
-I go to the sea.|🌊|我去海边。
-I go to school.|🏫|我去上学。
-I go home.|🏠|我回家。
-I go to bed.|🛏️|我去睡觉。`),
-U('大小快慢 The … is big.','🐘',`
-The elephant is big.|🐘|大象很大。
-The mouse is small.|🐭|老鼠很小。
-The giraffe is tall.|🦒|长颈鹿很高。
-The whale is big.|🐋|鲸鱼很大。
-The ant is small.|🐜|蚂蚁很小。
-The snake is long.|🐍|蛇很长。
-The turtle is slow.|🐢|乌龟很慢。
-The rabbit is fast.|🐇💨|兔子很快。
-The snail is slow.|🐌|蜗牛很慢。
-The cheetah is fast.|🐆|猎豹很快。
-The fire is hot.|🔥|火很烫。
-The ice is cold.|🧊|冰很冷。
-The ball is round.|⚽|球是圆的。
-The box is heavy.|📦|箱子很重。
-The feather is light.|🪶|羽毛很轻。
-The dog is wet.|🐕💦|狗湿了。`),
-U('会做什么 The … can…','🐦',`
-The bird can fly.|🕊️|鸟会飞。
-The fish can swim.|🐠|鱼会游泳。
-The frog can jump.|🐸|青蛙会跳。
-The dog can run.|🐕|狗会跑。
-The cat can climb.|🐈|猫会爬。
-The duck can swim.|🦆|鸭子会游泳。
-The bee can fly.|🐝|蜜蜂会飞。
-The horse can run.|🐎|马会跑。
-The kangaroo can hop.|🦘|袋鼠会蹦。
-The monkey can climb.|🐒|猴子会爬。
-The lion can roar.|🦁|狮子会吼。
-The cow can moo.|🐄|奶牛会哞哞叫。
-The baby can crawl.|👶|宝宝会爬。
-The rabbit can hop.|🐇|兔子会蹦。
-The penguin can swim.|🐧|企鹅会游泳。
-The robot can talk.|🤖|机器人会说话。`),
-U('我想要 I want a…','🙏',`
-I want a cookie.|🍪|我想要一块饼干。
-I want a cupcake.|🧁|我想要一个纸杯蛋糕。
-I want an apple.|🍏|我想要一个苹果。
-I want a drink.|🥤|我想要一杯饮料。
-I want a hug.|🤗|我想要一个拥抱。
-I want a toy.|🧸|我想要一个玩具。
-I want a pet.|🐹|我想要一只宠物。
-I want a balloon.|🎈|我想要一个气球。
-I want a hot dog.|🌭|我想要一个热狗。
-I want a sandwich.|🥪|我想要一个三明治。
-I want a donut.|🍩|我想要一个甜甜圈。
-I want a candy.|🍬|我想要一颗糖。
-I want a kite.|🪁|我想要一只风筝。
-I want a gift.|🎁|我想要一份礼物。
-I want a nap.|😴|我想睡个午觉。`)
+{id:'A',name:'A',title:'主题句子',c:'#1cb0f6',cd:'#1899d6',units:[
+U('I See · 我看见','👀',`
+I see a *lion*.|🦁|我看见一只狮子。
+I see a *tiger*.|🐯|我看见一只老虎。
+I see a *monkey*.|🐵|我看见一只猴子。
+I see a *zebra*.|🦓|我看见一匹斑马。
+I see a *giraffe*.|🦒|我看见一只长颈鹿。
+I see a *bear*.|🐻|我看见一只熊。
+I see a *snake*.|🐍|我看见一条蛇。
+I see a *panda*.|🐼|我看见一只熊猫。`,`
+I see an animal with stripes. What is it?|我看见一只有条纹的动物，是什么？|A zebra.|A panda.;A snake.;A bear.
+What has a long neck?|什么动物脖子很长？|A giraffe.|A snake.;A bear.;A monkey.
+What eats bamboo?|什么动物吃竹子？|A panda.|A lion.;A tiger.;A zebra.
+What can climb trees and eat bananas?|什么动物会爬树、吃香蕉？|A monkey.|A snake.;A zebra.;A giraffe.
+What has no legs?|什么动物没有腿？|A snake.|A tiger.;A bear.;A lion.`),
+U('This Is My Family · 这是我的家人','👪',`
+This is my *mom*.|👩|这是我的妈妈。
+This is my *dad*.|👨|这是我的爸爸。
+This is my *sister*.|👧|这是我的姐妹。
+This is my *brother*.|👦|这是我的兄弟。
+This is my *baby*.|👶|这是我家的宝宝。
+This is my *grandma*.|👵|这是我的奶奶。
+This is my *grandpa*.|👴|这是我的爷爷。
+This is my *dog*.|🐶|这是我的狗。`,`
+Who is your dad's mom?|爸爸的妈妈是谁？|My grandma.|My sister.;My baby.;My mom.
+Who is the youngest?|谁年纪最小？|The baby.|My grandpa.;My dad.;My mom.
+Who says woof?|谁会汪汪叫？|My dog.|My brother.;My grandma.;My dad.
+Is your brother a boy or a girl?|你的兄弟是男孩还是女孩？|A boy.|A girl.;A baby.;A dog.
+Who is your mom's dad?|妈妈的爸爸是谁？|My grandpa.|My brother.;My dog.;My sister.`),
+U('Look at Me · 看看我','🙋',`
+Look at my *eyes*.|👀|看我的眼睛。
+Look at my *ears*.|👂|看我的耳朵。
+Look at my *nose*.|👃|看我的鼻子。
+Look at my *mouth*.|👄|看我的嘴巴。
+Look at my *hands*.|👐|看我的双手。
+Look at my *feet*.|🦶|看我的脚。
+Look at my *hair*.|💇|看我的头发。
+Look at my *teeth*.|🦷|看我的牙齿。`,`
+What do you use to see?|你用什么看？|My eyes.|My feet.;My hair.;My teeth.
+What do you use to eat?|你用什么吃饭？|My mouth.|My ears.;My hair.;My feet.
+How many hands do you have?|你有几只手？|Two.|One.;Three.;Ten.
+What do you use to walk?|你用什么走路？|My feet.|My nose.;My ears.;My eyes.
+What do you wash before you eat?|吃饭前要洗什么？|My hands.|My hair.;My feet.;My ears.`),
+U('I Like Fruit · 我喜欢水果','🍓',`
+I like *apples*.|🍎|我喜欢苹果。
+I like *bananas*.|🍌|我喜欢香蕉。
+I like *grapes*.|🍇|我喜欢葡萄。
+I like *oranges*.|🍊|我喜欢橙子。
+I like *pears*.|🍐|我喜欢梨。
+I like *peaches*.|🍑|我喜欢桃子。
+I like *strawberries*.|🍓|我喜欢草莓。
+I like *watermelon*.|🍉|我喜欢西瓜。`,`
+What color are bananas?|香蕉是什么颜色？|Yellow.|Blue.;Black.;Pink.
+Which fruit is red and small?|哪种水果又红又小？|Strawberries.|Watermelon.;Bananas.;Pears.
+Which fruit is green outside and red inside?|哪种水果外面绿、里面红？|Watermelon.|Bananas.;Oranges.;Grapes.
+Do you like apples?|你喜欢苹果吗？|Yes, I like apples.|Yes, I like cars.;No, I am a cat.;I like blue.
+Which fruit grows in a bunch?|哪种水果一串一串地长？|Grapes.|Watermelon.;Peaches.;Oranges.`),
+U('Colors · 颜色','🎨',`
+The apple is *red*.|🍎|苹果是红色的。
+The banana is *yellow*.|🍌|香蕉是黄色的。
+The frog is *green*.|🐸|青蛙是绿色的。
+The sea is *blue*.|🌊|大海是蓝色的。
+The grapes are *purple*.|🍇|葡萄是紫色的。
+The carrot is *orange*.|🥕|胡萝卜是橙色的。
+The pig is *pink*.|🐷|这头猪是粉色的。
+The cat is *black*.|🐈‍⬛|这只猫是黑色的。`,`
+What color is the sky on a sunny day?|晴天的天空是什么颜色？|Blue.|Black.;Green.;Pink.
+What color is snow?|雪是什么颜色？|White.|Red.;Orange.;Purple.
+What color is grass?|草是什么颜色？|Green.|Pink.;Blue.;Black.
+What color is the sun?|太阳是什么颜色？|Yellow.|Purple.;Blue.;Green.
+What is red?|什么是红色的？|An apple.|A frog.;The sea.;A banana.`),
+U('I Can · 我会','💪',`
+I can *run*.|🏃|我会跑。
+I can *jump*.|🤸|我会跳。
+I can *swim*.|🏊|我会游泳。
+I can *sing*.|🎤|我会唱歌。
+I can *dance*.|💃|我会跳舞。
+I can *read*.|📖|我会读书。
+I can *draw*.|🎨|我会画画。
+I can *ride a bike*.|🚴|我会骑自行车。`,`
+What can you do in the water?|在水里能做什么？|I can swim.|I can read.;I can draw.;I can sing.
+What can you do with a book?|有一本书能做什么？|I can read.|I can swim.;I can jump.;I can ride a bike.
+What can you do with crayons?|用蜡笔能做什么？|I can draw.|I can swim.;I can run.;I can ride a bike.
+What can you do to music?|有音乐时能做什么？|I can dance.|I can read.;I can swim.;I can draw.
+Can a fish run?|鱼会跑吗？|No, it can not.|Yes, it can.;Yes, it is red.;No, it is a bird.`),
+U('On the Farm · 农场里','🐄',`
+The cow says *moo*.|🐮|奶牛哞哞叫。
+The pig says *oink*.|🐷|猪哼哼叫。
+The duck says *quack*.|🦆|鸭子嘎嘎叫。
+The sheep says *baa*.|🐑|绵羊咩咩叫。
+The dog says *woof*.|🐶|狗汪汪叫。
+The cat says *meow*.|🐱|猫喵喵叫。
+The hen says *cluck*.|🐔|母鸡咯咯叫。
+The horse says *neigh*.|🐴|马嘶嘶叫。`,`
+What does the duck say?|鸭子怎么叫？|Quack!|Moo!;Woof!;Neigh!
+What does the cat say?|猫怎么叫？|Meow!|Oink!;Baa!;Cluck!
+Who says oink?|谁哼哼叫？|The pig.|The cow.;The hen.;The duck.
+Who says baa?|谁咩咩叫？|The sheep.|The horse.;The dog.;The cat.
+Who gives us eggs?|谁给我们下蛋？|The hen.|The horse.;The pig.;The dog.`),
+U('The Weather · 天气','⛅',`
+It is *sunny*.|☀️|今天是晴天。
+It is *rainy*.|🌧️|今天下雨。
+It is *snowy*.|☃️|今天下雪。
+It is *windy*.|🌬️|今天刮风。
+It is *cloudy*.|☁️|今天多云。
+It is *hot*.|🥵|天气很热。
+It is *cold*.|🥶|天气很冷。
+It is *stormy*.|⛈️|今天有暴风雨。`,`
+It is rainy. What do you need?|下雨了，你需要什么？|An umbrella.|Sunglasses.;A swimsuit.;Ice cream.
+It is snowy. What can you make?|下雪了，可以做什么？|A snowman.|A sandcastle.;A kite.;A pizza.
+It is hot. What do you want?|天很热，你想要什么？|Ice cream.|A coat.;Gloves.;Hot soup.
+It is cold. What do you wear?|天很冷，你穿什么？|A coat.|A swimsuit.;Shorts.;Sunglasses.
+It is windy. What can you fly?|刮风了，可以放什么？|A kite.|A fish.;A car.;A bed.`),
+U('How Do I Feel · 我的心情','😀',`
+I am *happy*.|😀|我很开心。
+I am *sad*.|😢|我很难过。
+I am *angry*.|😠|我很生气。
+I am *scared*.|😱|我很害怕。
+I am *sleepy*.|😴|我很困。
+I am *sick*.|🤒|我生病了。
+I am *hungry*.|🤤|我饿了。
+I am *tired*.|😫|我很累。`,`
+You are hungry. What do you want?|你饿了，想要什么？|Food.|A bed.;A book.;A ball.
+You are sleepy. Where do you go?|你困了，去哪里？|To bed.|To the zoo.;To the park.;To school.
+You get a gift. How do you feel?|你收到礼物，什么心情？|I am happy.|I am sick.;I am angry.;I am sad.
+You are sick. Who helps you?|你生病了，谁来帮你？|The doctor.|The pilot.;The farmer.;The cook.
+You see a big monster. How do you feel?|你看见大怪兽，什么心情？|I am scared.|I am happy.;I am hungry.;I am sleepy.`),
+U('Here Comes the Bus · 车来了','🚌',`
+Here comes the *car*.|🚗|汽车来了。
+Here comes the *bus*.|🚌|公交车来了。
+Here comes the *train*.|🚆|火车来了。
+Here comes the *plane*.|✈️|飞机来了。
+Here comes the *boat*.|⛵|船来了。
+Here comes the *fire truck*.|🚒|消防车来了。
+Here comes the *taxi*.|🚕|出租车来了。
+Here comes the *ambulance*.|🚑|救护车来了。`,`
+Which one flies?|哪个会飞？|The plane.|The bus.;The train.;The taxi.
+Which one goes on the water?|哪个在水上走？|The boat.|The car.;The ambulance.;The train.
+Which one helps sick people?|哪个帮助病人？|The ambulance.|The taxi.;The boat.;The plane.
+Which one puts out fires?|哪个救火？|The fire truck.|The bus.;The plane.;The train.
+Which one is yellow and you pay to ride?|哪个是黄色的、坐要付钱？|The taxi.|The boat.;The fire truck.;The ambulance.`),
+U('Big and Little · 大和小','🐘',`
+The elephant is *big*.|🐘|大象很大。
+The mouse is *little*.|🐭|老鼠很小。
+The whale is *big*.|🐋|鲸鱼很大。
+The ant is *little*.|🐜|蚂蚁很小。
+The bear is *big*.|🐻|熊很大。
+The bee is *little*.|🐝|蜜蜂很小。
+The dinosaur is *big*.|🦕|恐龙很大。
+The chick is *little*.|🐤|小鸡很小。`,`
+Is an elephant big or little?|大象是大还是小？|It is big.|It is little.;It is red.;It is a cat.
+Is an ant big or little?|蚂蚁是大还是小？|It is little.|It is big.;It is blue.;It is a dog.
+Which is bigger, a whale or a fish?|鲸鱼和小鱼哪个大？|A whale.|A fish.;A bee.;An ant.
+Which is littler, a chick or a bear?|小鸡和熊哪个小？|A chick.|A bear.;An elephant.;A whale.
+What is big and lived long ago?|什么很大、生活在很久以前？|A dinosaur.|A mouse.;A bee.;A chick.`),
+U('In My Classroom · 教室里','✏️',`
+I have a *pencil*.|✏️|我有一支铅笔。
+I have a *crayon*.|🖍️|我有一支蜡笔。
+I have a *ruler*.|📏|我有一把尺子。
+I have a *book*.|📖|我有一本书。
+I have a *bag*.|🎒|我有一个书包。
+I have a *pen*.|🖊️|我有一支钢笔。
+I have *paper*.|📄|我有纸。
+I have *scissors*.|✂️|我有一把剪刀。`,`
+What do you write with?|用什么写字？|A pencil.|A ruler.;A bag.;Scissors.
+What do you cut with?|用什么剪东西？|Scissors.|A crayon.;A book.;A pen.
+What do you put your books in?|书放在什么里？|A bag.|A pen.;A ruler.;A crayon.
+What do you color with?|用什么涂色？|A crayon.|Scissors.;A bag.;A ruler.
+What do you read?|你读什么？|A book.|A ruler.;Scissors.;A pen.`),
+U('Getting Dressed · 穿衣服','👕',`
+I put on my *socks*.|🧦|我穿上袜子。
+I put on my *shoes*.|👟|我穿上鞋子。
+I put on my *shirt*.|👕|我穿上衬衫。
+I put on my *pants*.|👖|我穿上裤子。
+I put on my *coat*.|🧥|我穿上外套。
+I put on my *hat*.|👒|我戴上帽子。
+I put on my *dress*.|👗|我穿上裙子。
+I put on my *boots*.|👢|我穿上靴子。`,`
+What do you put on before your shoes?|穿鞋之前先穿什么？|My socks.|My hat.;My coat.;My shirt.
+What do you put on your head?|头上戴什么？|My hat.|My socks.;My pants.;My boots.
+It is raining. What do you put on your feet?|下雨了，脚上穿什么？|My boots.|My hat.;My shirt.;My dress.
+It is cold. What do you put on?|天冷了，穿上什么？|My coat.|My shorts.;My swimsuit.;My sunglasses.
+What do you wear on your legs?|腿上穿什么？|My pants.|My hat.;My shirt.;My coat.`),
+U('Count with Me · 一起数','🔢',`
+I see *one* sun.|☀️|我看见一个太阳。
+I see *two* cats.|🐱🐱|我看见两只猫。
+I see *three* dogs.|🐶🐶🐶|我看见三只狗。
+I see *four* birds.|🐦🐦🐦🐦|我看见四只鸟。
+I see *five* fish.|🐟🐟🐟🐟🐟|我看见五条鱼。
+I see *six* eggs.|🥚🥚🥚🥚🥚🥚|我看见六个鸡蛋。
+I see *seven* stars.|⭐⭐⭐⭐⭐⭐⭐|我看见七颗星星。
+I see *eight* ducks.|🦆🦆🦆🦆🦆🦆🦆🦆|我看见八只鸭子。`,`
+How many eyes do you have?|你有几只眼睛？|Two.|Three.;Five.;Ten.
+How many legs does a dog have?|狗有几条腿？|Four.|Two.;Six.;Eight.
+How many legs does a spider have?|蜘蛛有几条腿？|Eight.|Four.;Two.;Six.
+What comes after three?|三后面是几？|Four.|Two.;Five.;One.
+How many fingers are on one hand?|一只手有几根手指？|Five.|Four.;Six.;Ten.`),
+U('In the Sky · 天空中','☁️',`
+I see the *sun*.|☀️|我看见太阳。
+I see the *moon*.|🌙|我看见月亮。
+I see the *stars*.|✨|我看见星星。
+I see a *cloud*.|☁️|我看见一朵云。
+I see a *rainbow*.|🌈|我看见一道彩虹。
+I see a *plane*.|✈️|我看见一架飞机。
+I see a *bird*.|🐦|我看见一只鸟。
+I see a *kite*.|🪁|我看见一只风筝。`,`
+What do you see at night?|晚上能看见什么？|The moon.|The sun.;A rainbow.;A school.
+When do you see the sun?|什么时候能看见太阳？|In the day.|At night.;In the bath.;In the box.
+What do you see after the rain?|雨后能看见什么？|A rainbow.|A snowman.;A moon cake.;A fire.
+What flies with wings and sings?|什么用翅膀飞、还会唱歌？|A bird.|A cloud.;The sun.;A rainbow.
+What is white and soft in the sky?|天上白白软软的是什么？|A cloud.|A plane.;The moon.;A kite.`),
+U('Bugs · 虫子','🐛',`
+Look at the *bee*.|🐝|看那只蜜蜂。
+Look at the *ant*.|🐜|看那只蚂蚁。
+Look at the *butterfly*.|🦋|看那只蝴蝶。
+Look at the *ladybug*.|🐞|看那只瓢虫。
+Look at the *snail*.|🐌|看那只蜗牛。
+Look at the *spider*.|🕷️|看那只蜘蛛。
+Look at the *worm*.|🪱|看那条虫子。
+Look at the *caterpillar*.|🐛|看那条毛毛虫。`,`
+Which bug makes honey?|哪只虫子会酿蜜？|The bee.|The worm.;The snail.;The ant.
+Which bug has eight legs?|哪只虫子有八条腿？|The spider.|The bee.;The ladybug.;The worm.
+What does a caterpillar become?|毛毛虫会变成什么？|A butterfly.|A spider.;A snail.;A bee.
+Which bug is red with black dots?|哪只虫子是红色带黑点的？|The ladybug.|The ant.;The worm.;The bee.
+Which bug is very slow?|哪只虫子很慢？|The snail.|The bee.;The butterfly.;The ant.`),
+U('Shapes Around Me · 身边的形状','🔺',`
+The clock is a *circle*.|🕒|钟是圆形的。
+The cookie is a *circle*.|🍪|饼干是圆形的。
+The pizza is a *triangle*.|🍕|这块披萨是三角形的。
+The window is a *square*.|🪟|窗户是正方形的。
+The door is a *rectangle*.|🚪|门是长方形的。
+The egg is an *oval*.|🥚|鸡蛋是椭圆形的。
+The kite is a *diamond*.|🪁|风筝是菱形的。
+The starfish is a *star*.|⭐|海星是星形的。`,`
+What shape is a ball?|球是什么形状？|A circle.|A square.;A triangle.;A rectangle.
+What shape has three sides?|什么形状有三条边？|A triangle.|A circle.;A square.;An oval.
+What shape has four sides that are all the same?|四条边一样长的是什么形状？|A square.|A triangle.;A circle.;An oval.
+What shape is an egg?|鸡蛋是什么形状？|An oval.|A square.;A triangle.;A diamond.
+What shape is a door?|门是什么形状？|A rectangle.|A circle.;A triangle.;A heart.`),
+U('Where Is It · 在哪里','📦',`
+The cat is *in* the box.|#room 🐱@50,50,32 [box]@50,60,54|猫在箱子里。
+The cat is *on* the box.|#room [cbox]@46,64,48 🐱@50,42,30|猫在箱子上。
+The cat is *under* the table.|#room [table]@50,46,72 🐱@50,66,24|猫在桌子下面。
+The cat is *on* the table.|#room [table]@50,62,72 🐱@50,47,26|猫在桌子上。
+The ball is *in* the box.|#room ⚽@50,57,22 [box]@50,62,54|球在箱子里。
+The ball is *under* the table.|#room [table]@50,46,72 ⚽@50,70,18|球在桌子下面。
+The dog is *on* the bed.|#room [bed]@50,58,80 🐶@58,46,26|狗在床上。
+The dog is *under* the bed.|#room [bed]@50,48,80 🐶@58,76,18|狗在床底下。`,`
+Where do you sleep?|你在哪里睡觉？|In my bed.|Under my bed.;On the TV.;In the box.
+Where is your hat?|你的帽子戴在哪里？|On my head.|In my shoe.;Under my bed.;In the soup.
+Where do fish live?|鱼住在哪里？|In the water.|On the tree.;Under the bed.;In the sky.
+Where do birds sit?|小鸟停在哪里？|In the tree.|In the soup.;Under the sea.;In the box.
+Where are your shoes?|鞋子穿在哪里？|On my feet.|On my head.;In my mouth.;In the sky.`),
+U('My Day · 我的一天','⏰',`
+I *wake up*.|⏰|我起床。
+I *wash my face*.|🧼|我洗脸。
+I *brush my teeth*.|🪥|我刷牙。
+I *get dressed*.|👕|我穿好衣服。
+I *eat breakfast*.|🥣|我吃早饭。
+I *go to school*.|🏫|我去上学。
+I *play with friends*.|⚽|我和朋友一起玩。
+I *go to bed*.|🛏️|我上床睡觉。`,`
+What do you do first in the morning?|早上第一件事做什么？|I wake up.|I go to bed.;I go to school.;I eat dinner.
+What do you do with a toothbrush?|用牙刷做什么？|I brush my teeth.|I wash my face.;I eat breakfast.;I play.
+When do you go to bed?|什么时候上床睡觉？|At night.|In the morning.;At lunch.;At school.
+What do you eat in the morning?|早上吃什么？|Breakfast.|Dinner.;Lunch.;A bed.
+Where do you go to learn?|去哪里学习？|To school.|To bed.;To the bathtub.;To the zoo.`),
+U('Animals Can · 动物会','🦘',`
+A bird can *fly*.|🕊️|鸟会飞。
+A fish can *swim*.|🐠|鱼会游泳。
+A frog can *jump*.|🐸|青蛙会跳。
+A horse can *run*.|🐎|马会跑。
+A monkey can *climb*.|🐒|猴子会爬树。
+A kangaroo can *hop*.|🦘|袋鼠会蹦。
+A snake can *hiss*.|🐍|蛇会发出嘶嘶声。
+A lion can *roar*.|🦁|狮子会吼叫。`,`
+What can a bird do?|鸟会做什么？|It can fly.|It can read.;It can drive.;It can cook.
+Can a fish fly?|鱼会飞吗？|No, it can not.|Yes, it can.;Yes, it is a bird.;No, it is red.
+Which animal can hop?|哪种动物会蹦？|A kangaroo.|A fish.;A snake.;A lion.
+Which animal can climb trees?|哪种动物会爬树？|A monkey.|A fish.;A horse.;A frog.
+What can a lion do?|狮子会做什么？|It can roar.|It can fly.;It can read.;It can swim like a fish.`),
+U('At the Beach · 在海滩','🏖️',`
+We *dig* in the sand.|🪣|我们在沙子里挖。
+We *build* a sandcastle.|🏰|我们堆一座沙堡。
+We *find* shells.|🐚|我们找到贝壳。
+We *swim* in the sea.|🏊|我们在海里游泳。
+We *play* with a ball.|🏐|我们玩球。
+We *eat* ice cream.|🍦|我们吃冰淇淋。
+We *ride* in a boat.|⛵|我们坐船。
+We *fly* a kite.|🪁|我们放风筝。`,`
+What do you build with sand?|用沙子堆什么？|A sandcastle.|A snowman.;A house.;A car.
+Where do you swim?|在哪里游泳？|In the sea.|In the sand.;In the bed.;In the car.
+What do you find on the beach?|在海滩上找到什么？|Shells.|Shoes.;Books.;Pencils.
+It is hot. What do you eat?|天很热，吃什么？|Ice cream.|Hot soup.;Hot tea.;Hot cocoa.
+What do you ride in on the sea?|在海上坐什么？|A boat.|A bus.;A bike.;A train.`),
+U('Happy Birthday · 生日快乐','🎂',`
+Here is my *cake*.|🎂|这是我的蛋糕。
+Here are my *candles*.|🕯️|这是我的蜡烛。
+Here is a *gift*.|🎁|这是一份礼物。
+Here are the *balloons*.|🎈|这是气球。
+Here is my party *hat*.|🥳|这是我的派对帽。
+Here is a *card*.|💌|这是一张贺卡。
+Here is a *cupcake*.|🧁|这是一个纸杯蛋糕。
+Here are my *friends*.|🧑‍🤝‍🧑|这是我的朋友们。`,`
+How old are you?|你几岁了？|I am five.|I am a cake.;I am red.;I am a hat.
+What do you say to a birthday kid?|对过生日的小朋友说什么？|Happy birthday!|Good night!;Goodbye!;I am sorry.
+What do you do with candles?|蜡烛要怎么做？|Blow them out.|Eat them.;Wear them.;Read them.
+What is in the gift box?|礼物盒里是什么？|A toy.|The sun.;The sea.;A cloud.
+What do you say when you get a gift?|收到礼物说什么？|Thank you!|Good night!;I am sick.;Goodbye!`),
+U('Good Night · 晚安','🌙',`
+Good night, *moon*.|🌙|晚安，月亮。
+Good night, *stars*.|✨|晚安，星星。
+Good night, *Mom*.|👩|晚安，妈妈。
+Good night, *Dad*.|👨|晚安，爸爸。
+Good night, *teddy*.|🧸|晚安，泰迪熊。
+Good night, *room*.|🛏️|晚安，房间。
+Good night, *kitty*.|🐱|晚安，小猫。
+Good night, *light*.|💡|晚安，灯。`,`
+What do you say at bedtime?|睡觉时说什么？|Good night!|Good morning!;Hello!;Happy birthday!
+What do you see in the night sky?|夜空里有什么？|The moon and stars.|The sun.;A rainbow.;A school.
+What do you sleep in?|你睡在什么上面？|My bed.|My shoe.;My cup.;My bag.
+What do you hear before you sleep?|睡前听什么？|A story.|A drum.;A car.;A fire truck.
+When do you sleep?|什么时候睡觉？|At night.|In the morning.;At lunch.;At school.`),
+U('Fruit Salad · 水果沙拉','🥗',`
+Put in the *apple*.|🍎|放进苹果。
+Put in the *banana*.|🍌|放进香蕉。
+Put in the *grapes*.|🍇|放进葡萄。
+Put in the *orange*.|🍊|放进橙子。
+Put in the *strawberries*.|🍓|放进草莓。
+Put in the *kiwi*.|🥝|放进猕猴桃。
+Put in the *melon*.|🍈|放进甜瓜。
+Put in the *blueberries*.|🫐|放进蓝莓。`,`
+What do you make with lots of fruit?|用很多水果做什么？|A fruit salad.|A sandcastle.;A snowman.;A kite.
+Which fruit is small and blue?|哪种水果小小的、蓝色的？|Blueberries.|A banana.;A melon.;An orange.
+Which fruit is green inside with tiny black seeds?|哪种水果里面绿色、有小黑籽？|A kiwi.|A banana.;An apple.;A strawberry.
+What do you eat a salad with?|用什么吃沙拉？|A fork.|A shoe.;A pencil.;A hat.
+Is fruit good for you?|水果对身体好吗？|Yes, it is.|No, it is a car.;No, it is blue.;Yes, it is a dog.`),
+U('I Want · 我想要','🙏',`
+I want a *cookie*.|🍪|我想要一块饼干。
+I want a *cupcake*.|🧁|我想要一个纸杯蛋糕。
+I want an *apple*.|🍏|我想要一个苹果。
+I want a *sandwich*.|🥪|我想要一个三明治。
+I want a *hot dog*.|🌭|我想要一个热狗。
+I want a *donut*.|🍩|我想要一个甜甜圈。
+I want some *pizza*.|🍕|我想要一些披萨。
+I want some *juice*.|🧃|我想要一些果汁。`,`
+You are hungry. What do you say?|你饿了，说什么？|I want some food.|I want a nap.;I am a cat.;Good night!
+Which one is a drink?|哪个是饮料？|Juice.|A cookie.;A sandwich.;A donut.
+Which one is sweet?|哪个是甜的？|A cupcake.|A rock.;A shoe.;A pencil.
+What do you say when you get food?|拿到食物说什么？|Thank you!|Goodbye!;I am sick.;Good night!
+What has bread and a sausage?|什么有面包和香肠？|A hot dog.|A donut.;A cupcake.;A cookie.`),
+U('Winter Fun · 冬天真好玩','⛄',`
+I *make* a snowman.|⛄|我堆雪人。
+I *ride* a sled.|🛷|我坐雪橇。
+I *wear* my scarf.|🧣|我戴上围巾。
+I *put on* my gloves.|🧤|我戴上手套。
+I *go skating*.|⛸️|我去滑冰。
+I *go skiing*.|⛷️|我去滑雪。
+I *drink* hot cocoa.|☕|我喝热可可。
+I *catch* snowflakes.|❄️|我接雪花。`,`
+What is cold and white?|什么又冷又白？|Snow.|Fire.;The sun.;Hot cocoa.
+What do you drink on a cold day?|冷天喝什么？|Hot cocoa.|Cold ice.;Snow.;Ice cream.
+What do you make with snow?|用雪做什么？|A snowman.|A sandcastle.;A cake.;A kite.
+What keeps your hands warm?|什么让手暖和？|Gloves.|Shorts.;Sunglasses.;A swimsuit.
+Which season has snow?|哪个季节下雪？|Winter.|Summer.;Spring.;Fall.`),
+U('My House · 我的家','🏠',`
+Here is the *kitchen*.|🍳|这是厨房。
+Here is the *bedroom*.|🛏️|这是卧室。
+Here is the *bathroom*.|🛁|这是浴室。
+Here is the *living room*.|🛋️|这是客厅。
+Here is the *garden*.|🌷|这是花园。
+Here is the *garage*.|🚗|这是车库。
+Here is the *door*.|🚪|这是门。
+Here is the *window*.|🪟|这是窗户。`,`
+Where do you sleep?|在哪里睡觉？|In the bedroom.|In the garage.;In the kitchen.;In the garden.
+Where do you cook?|在哪里做饭？|In the kitchen.|In the bathroom.;In the bedroom.;In the garage.
+Where do you take a bath?|在哪里洗澡？|In the bathroom.|In the kitchen.;In the garden.;In the living room.
+Where does the car stay?|车停在哪里？|In the garage.|In the bedroom.;In the bathroom.;In the kitchen.
+Where do flowers grow?|花长在哪里？|In the garden.|In the garage.;In the bathroom.;In the bedroom.`),
+U('Places · 去哪里','🏞️',`
+I go to the *park*.|🏞️|我去公园。
+I go to the *zoo*.|🦁|我去动物园。
+I go to the *beach*.|🏖️|我去海滩。
+I go to the *store*.|🏪|我去商店。
+I go to the *library*.|📚|我去图书馆。
+I go to the *farm*.|🚜|我去农场。
+I go to *school*.|🏫|我去上学。
+I go to the *hospital*.|🏥|我去医院。`,`
+Where do you buy milk?|在哪里买牛奶？|At the store.|At the zoo.;At the beach.;At the library.
+Where do you see animals?|在哪里看动物？|At the zoo.|At the bank.;At the library.;At the store.
+Where do you read books?|在哪里看书？|At the library.|At the beach.;At the zoo.;At the farm.
+Where do you swim and play in the sand?|在哪里游泳、玩沙子？|At the beach.|At the store.;At the library.;At school.
+Where do cows live?|奶牛住在哪里？|On the farm.|At the library.;At school.;At the store.`),
+U('When I Grow Up · 长大以后','🧑‍🚀',`
+I want to be a *doctor*.|🧑‍⚕️|我想当医生。
+I want to be a *firefighter*.|🧑‍🚒|我想当消防员。
+I want to be a *police officer*.|👮|我想当警察。
+I want to be a *farmer*.|🧑‍🌾|我想当农民。
+I want to be a *cook*.|🧑‍🍳|我想当厨师。
+I want to be a *pilot*.|🧑‍✈️|我想当飞行员。
+I want to be a *teacher*.|🧑‍🏫|我想当老师。
+I want to be an *astronaut*.|🧑‍🚀|我想当宇航员。`,`
+Who flies a plane?|谁开飞机？|A pilot.|A cook.;A farmer.;A doctor.
+Who helps sick people?|谁帮助病人？|A doctor.|A pilot.;A firefighter.;An astronaut.
+Who teaches kids?|谁教小朋友？|A teacher.|A cook.;A police officer.;A farmer.
+Who goes to the moon?|谁去月球？|An astronaut.|A teacher.;A cook.;A farmer.
+Who cooks food?|谁做饭？|A cook.|A pilot.;A doctor.;An astronaut.`),
+U('Happy Holidays · 节日快乐','🏮',`
+We eat *mooncakes*.|🥮|我们吃月饼。
+We light *lanterns*.|🏮|我们点灯笼。
+We get *red envelopes*.|🧧|我们收红包。
+We see *fireworks*.|🎆|我们看烟花。
+We eat *dumplings*.|🥟|我们吃饺子。
+We decorate a *Christmas tree*.|🎄|我们装饰圣诞树。
+We carve a *pumpkin*.|🎃|我们雕南瓜灯。
+We give *gifts*.|🎁|我们送礼物。`,`
+When do we eat mooncakes?|什么时候吃月饼？|At the Mid-Autumn Festival.|At Christmas.;At Halloween.;On my birthday.
+When do we get red envelopes?|什么时候收红包？|At Spring Festival.|At Halloween.;At Christmas.;In summer.
+What do we say at Spring Festival?|春节说什么？|Happy New Year!|Good night!;I am sorry.;Goodbye!
+Who comes at Christmas?|圣诞节谁会来？|Santa.|A shark.;A dinosaur.;A ghost.
+What do many families eat at Spring Festival?|很多家庭春节吃什么？|Dumplings.|Mooncakes.;Ice cream.;Popcorn.`)
 ]},
 {id:'B',name:'B',title:'第一批句子',c:'#ce82ff',cd:'#a568cc',units:[
 U('我看见 I see','👀',`
@@ -1421,16 +1754,17 @@ Dinosaurs lived a long time ago.|🦕🦖|恐龙生活在很久很久以前。`)
 /* ================= 索引 ================= */
 const ALL=[],UNITS=[];
 // 每节学习课 5–6 个新内容：15–16 个词的单元分成 3 节，再加 1 节单元考试，共 4 个模块
-function chunk(a){const n=Math.ceil(a.length/6),r=[];let s=0;for(let i=1;i<=n;i++){const e=Math.round(a.length*i/n);r.push(a.slice(s,e));s=e}return r}
+// 每个单元固定 4 个模块：学一学 / 听一听（听音选图）/ 看一看（看图选词）/ 小测验
+const MODS=[['学一学','📖'],['听一听','🎧'],['看一看','🖼️'],['小测验','🧩']];
 LEVELS.forEach((lv,li)=>lv.units.forEach((u,ui)=>{
   u.li=li;u.ui=ui;u.key=lv.id+'.'+ui;u.gi=UNITS.length;u.level=lv;
   u.items.forEach(it=>{it.id=lv.id+'|'+u.name+'|'+it.text;it.unit=u;ALL.push(it)});   // 编号带单元名：同一级别里 orange（水果）和 orange（颜色）可以并存
-  u.chunks=chunk(u.items);u.nL=u.chunks.length+1;   // 若干节学习课 + 1 节单元考试
+  u.nL=MODS.length;
   UNITS.push(u);
 }));
 
 /* ================= 存档 ================= */
-const DEF={done:{},stats:{},xp:0,streak:0,last:'',lv:-1,set:{rate:.85,text:true,sfx:true,all:false,voice:'',group:true,engine:'auto'}};
+const DEF={done:{},stats:{},xp:0,streak:0,last:'',lv:-1,set:{rate:.85,text:true,sfx:true,all:false,voice:'',engine:'auto',music:true}};
 let S;
 try{S=JSON.parse(localStorage.getItem(KEY))||{}}catch(e){S={}}
 S=Object.assign({},DEF,S);S.set=Object.assign({},DEF.set,S.set||{});
@@ -1477,6 +1811,8 @@ const PROP={
   diamond:(x,y,s)=>shape(`<path d="M${x} ${y-s/2}L${r2(x+s*.38)} ${y}L${x} ${y+s/2}L${r2(x-s*.38)} ${y}z"/>`),
   star:(x,y,s)=>shape(`<path d="${Array.from({length:10},(_,i)=>{const a=-Math.PI/2+i*Math.PI/5,r=i%2?s*.21:s*.5;return (i?'L':'M')+r2(x+r*Math.cos(a))+' '+r2(y+r*Math.sin(a))}).join('')}z"/>`),
   heart:(x,y,s)=>shape(`<path d="M${x} ${r2(y+s*.38)}C${r2(x-s*.62)} ${r2(y-s*.02)} ${r2(x-s*.28)} ${r2(y-s*.48)} ${x} ${r2(y-s*.18)}C${r2(x+s*.28)} ${r2(y-s*.48)} ${r2(x+s*.62)} ${r2(y-s*.02)} ${x} ${r2(y+s*.38)}z"/>`),
+  dirt:(x,y,s)=>`<path d="M${x-s/2} ${r2(y+s*.15)}Q${x} ${r2(y-s*.4)} ${x+s/2} ${r2(y+s*.15)}z" fill="#8d6e63"/>`+[[-.2,0],[.05,-.08],[.22,.04],[-.05,.08]].map(([a,b])=>`<circle cx="${r2(x+a*s)}" cy="${r2(y+b*s)}" r="${r2(s*.025)}" fill="#5d4037"/>`).join(''),
+  shovel:(x,y,s)=>`<rect x="${x-2}" y="${r2(y-s/2)}" width="4" height="${r2(s*.62)}" rx="1" fill="#a1887f"/><rect x="${r2(x-s*.13)}" y="${r2(y-s/2-3)}" width="${r2(s*.26)}" height="5" rx="2" fill="#6d4c41"/><path d="M${r2(x-s*.17)} ${r2(y+s*.1)}h${r2(s*.34)}v${r2(s*.16)}q${r2(-s*.17)} ${r2(s*.24)} ${r2(-s*.34)} 0z" fill="#90a4ae" stroke="#607d8b" stroke-width="1.2"/>`,
   pentagon:(x,y,s)=>shape(poly(x,y,s,5)),
   hexagon:(x,y,s)=>shape(poly(x,y,s,6)),
   // 颜色圆点：[dot=e53935]，和形状一样是平涂，十种颜色风格统一
@@ -1553,13 +1889,13 @@ function useOnline(){
 }
 function stopSpeak(){clearTimeout(wd);OQ=[];OA.pause();if(synth)synth.cancel();document.body.classList.remove('talk')}
 // queue=true 时排在当前朗读后面（“认一认”页依次读几个词），onstart 用来高亮正在读的卡片
-function speak(text,slow,queue,onstart){
+function speak(text,slow,queue,onstart,pitch){
   if(useOnline())return speakOnline(text,slow,queue,onstart);
   try{
     if(!queue){clearTimeout(wd);OQ=[];OA.pause();if(synth.speaking||synth.pending)synth.cancel()}
     const u=new SpeechSynthesisUtterance(text);let started=false;
     u.lang=voice?voice.lang:'en-US';if(voice)u.voice=voice;
-    u.rate=slow?Math.max(.4,S.set.rate*.6):S.set.rate;u.pitch=1.05;
+    u.rate=slow?Math.max(.4,S.set.rate*.6):pitch?Math.min(1.1,S.set.rate+.15):S.set.rate;u.pitch=pitch||1.05;
     u.onstart=()=>{started=true;document.body.classList.add('talk');if(onstart)onstart()};
     u.onend=u.onerror=()=>document.body.classList.remove('talk');
     synth.speak(u);
@@ -1569,33 +1905,84 @@ function speak(text,slow,queue,onstart){
 /* 音效：用代码合成 WAV，交给 <audio> 播放。
    iPad 上 WebAudio 会被静音键/静音模式压掉，<audio> 走媒体通道，和朗读一样能听见 */
 try{if(navigator.audioSession)navigator.audioSession.type='playback'}catch(e){}
-function wav(notes,dur){
-  const SR=22050,n=Math.ceil(SR*dur),d=new Float32Array(n);
-  for(const [f,st,len,vol,w,f2] of notes){
-    const s0=st*SR|0,L=len*SR|0;let ph=0;
-    for(let i=0;i<L&&s0+i<n;i++){
-      ph+=(f2?f+(f2-f)*i/L:f)/SR;const x=ph%1;
-      const v=w==='sq'?(x<.5?.6:-.6):w==='tri'?4*Math.abs(x-.5)-1:Math.sin(2*Math.PI*ph);
-      d[s0+i]+=v*vol*Math.min(1,i/(SR*.008))*Math.pow(1-i/L,1.5);
-    }
-  }
-  const buf=new ArrayBuffer(44+n*2),dv=new DataView(buf),ws=(o,s)=>{for(let i=0;i<s.length;i++)dv.setUint8(o+i,s.charCodeAt(i))};
+const SR=22050;
+function wavURL(d){
+  const n=d.length,buf=new ArrayBuffer(44+n*2),dv=new DataView(buf),ws=(o,s)=>{for(let i=0;i<s.length;i++)dv.setUint8(o+i,s.charCodeAt(i))};
   ws(0,'RIFF');dv.setUint32(4,36+n*2,true);ws(8,'WAVEfmt ');dv.setUint32(16,16,true);dv.setUint16(20,1,true);dv.setUint16(22,1,true);
   dv.setUint32(24,SR,true);dv.setUint32(28,SR*2,true);dv.setUint16(32,2,true);dv.setUint16(34,16,true);ws(36,'data');dv.setUint32(40,n*2,true);
   for(let i=0;i<n;i++)dv.setInt16(44+i*2,Math.max(-1,Math.min(1,d[i]))*32767,true);
   return URL.createObjectURL(new Blob([buf],{type:'audio/wav'}));
 }
+// 往 d 里叠加一个音：[频率, 开始秒, 时长, 音量, 波形, 滑到的频率]；wrap=true 时尾巴绕回开头（循环背景音乐用）
+function addTone(d,[f,st,len,vol,w,f2],wrap){
+  const n=d.length,s0=Math.round(st*SR),L=Math.round(len*SR);let ph=0;
+  for(let i=0;i<L;i++){
+    const k=s0+i;if(k>=n&&!wrap)break;
+    ph+=(f2?f+(f2-f)*i/L:f)/SR;const x=ph%1;
+    const v=w==='sq'?(x<.5?.6:-.6):w==='pulse'?(x<.25?.5:-.5):w==='tri'?4*Math.abs(x-.5)-1:Math.sin(2*Math.PI*ph);
+    d[k%n]+=v*vol*Math.min(1,i/(SR*.008))*Math.pow(1-i/L,1.5);
+  }
+}
+function wav(notes,dur){const d=new Float32Array(Math.ceil(SR*dur));notes.forEach(t=>addTone(d,t));return wavURL(d)}
+let seed=7;const rnd=()=>(seed=seed*16807%2147483647)/2147483647;
+// 鼓掌：很多下短促的“噪声拍击”叠在一起，中间最密，最后慢慢停下
+function claps(d,count,dur,vol){
+  const n=d.length;
+  for(let c=0;c<count;c++){
+    const s0=Math.round(Math.pow(rnd(),.85)*dur*SR),L=Math.round(SR*.04),amp=vol*(.5+rnd()*.5);let lp=0;
+    for(let i=0;i<L&&s0+i<n;i++){const x=rnd()*2-1;lp+=(x-lp)*.5;d[s0+i]+=(x-lp)*amp*Math.exp(-i/(SR*.007))}
+  }
+  const fade=Math.round(SR*.7);for(let i=0;i<fade;i++)d[n-1-i]*=i/fade;
+}
+function clapWav(){const d=new Float32Array(Math.round(SR*2.2));claps(d,90,1.7,.55);return wavURL(d)}
+// 欢呼：更热烈的掌声 + 口哨 + 一小段号角
+function cheerWav(){
+  const d=new Float32Array(Math.round(SR*2.8));claps(d,170,2.2,.6);
+  [[523,0,.18,.22,'tri'],[659,.14,.18,.22,'tri'],[784,.28,.18,.22,'tri'],[1047,.42,.55,.26,'tri']].forEach(t=>addTone(d,t));
+  for(let i=0,ph=0;i<SR*1.1;i++){const t=i/SR,f=1500+700*Math.min(1,t/.35)+60*Math.sin(t*40);ph+=f/SR;d[Math.round(SR*.9)+i]+=Math.sin(2*Math.PI*ph)*.12*Math.min(1,t/.05)*Math.max(0,1-t/1.1)}
+  return wavURL(d);
+}
+/* 背景音乐：C 大调 8 小节欢快小曲，112 拍/分，大约 17 秒一轮，首尾相接循环播放。
+   iPad 不能用代码调 <audio> 音量，所以直接把音量做小 */
+function bgmWav(){
+  const beat=60/112,n=Math.round(SR*beat*32),d=new Float32Array(n),e=beat/2,mf=m=>440*Math.pow(2,(m-69)/12);
+  const mel=[76,79,76,72,74,76,79,0, 74,79,74,71,72,74,67,0, 72,76,81,79,76,72,74,76, 77,76,74,72,69,72,0,0,
+             76,79,84,79,76,79,81,79, 74,79,83,79,74,76,74,0, 72,69,72,77,76,74,72,74, 76,0,74,0,72,0,0,0];
+  mel.forEach((m,i)=>{if(m)addTone(d,[mf(m),i*e,e*1.6,.11,'pulse'],true)});
+  const roots=[48,43,45,41,48,43,41,48],third=[4,4,3,4,4,4,4,4];
+  roots.forEach((r,b)=>{
+    const t0=b*4*beat;
+    [0,2].forEach(q=>addTone(d,[mf(r-12),t0+q*beat,beat*1.2,.26,'tri'],true));   // 低音
+    [1,3].forEach(q=>[0,third[b],7].forEach(x=>addTone(d,[mf(r+12+x),t0+q*beat,beat*.5,.045],true)));   // 和弦
+    [0,2].forEach(q=>addTone(d,[140,t0+q*beat,.14,.32,'sine',45],true));   // 底鼓
+  });
+  for(let i=0;i<64;i++)if(i%2){const s0=Math.round(i*e*SR);for(let j=0;j<SR*.03;j++)d[(s0+j)%n]+=(rnd()*2-1)*.05*Math.exp(-j/(SR*.008))}   // 沙锤
+  let pk=0;for(let i=0;i<n;i++)pk=Math.max(pk,Math.abs(d[i]));
+  for(let i=0;i<n;i++)d[i]*=.3/pk;
+  return wavURL(d);
+}
 const SND={
   ok:wav([[880,0,.14,.45],[1318,.1,.32,.45]],.45),
   bad:wav([[420,0,.2,.55,'sq',360],[260,.2,.45,.6,'sq',190]],.7),   // 明显的“嗯—哦”下降蜂鸣
   tap:wav([[700,0,.05,.25]],.06),
-  win:wav([[523,0,.3,.35,'tri'],[659,.11,.3,.35,'tri'],[784,.22,.3,.35,'tri'],[1047,.33,.5,.4,'tri']],.9)
+  clap:clapWav(),
+  cheer:cheerWav()
 };
 const AUD={};
 function sfx(k){
   if(!S.set.sfx)return;
   try{let a=AUD[k];if(!a)a=AUD[k]=new Audio(SND[k]);a.currentTime=0;const p=a.play();if(p&&p.catch)p.catch(()=>{})}catch(e){}
 }
+// 夸奖用更高、更快一点的语气（设备语音有效；在线朗读的声音是固定的）
+const praise=t=>speak(t,false,false,null,1.35);
+let BGM=null;
+function bgmPlay(){
+  if(!S.set.music||!$('#home').classList.contains('on'))return;
+  try{if(!BGM){BGM=new Audio(bgmWav());BGM.loop=true}if(BGM.paused){const p=BGM.play();if(p&&p.catch)p.catch(()=>{})}}catch(e){}
+}
+function bgmStop(){if(BGM)BGM.pause()}
+// 浏览器要等用户点一下才允许播放声音：首页上第一次点击时开始放音乐
+document.addEventListener('pointerdown',()=>bgmPlay());
 function actx(){}
 const SPK='<svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0 0 14 8v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z"/></svg>';
 
@@ -1631,7 +2018,7 @@ function renderHome(){
   const y=new Date();y.setDate(y.getDate()-1);
   fire.classList.toggle('off',S.last!==today()&&S.last!==today(y));
   $('#hXp').querySelector('span').textContent=S.xp;
-  renderTabs();
+  renderTabs();bgmPlay();
   const li=curLevel(),lv=LEVELS[li],[dn,tot]=levelProg(lv);
   let h=`<section class="lvl" style="--c:${lv.c};--cd:${lv.cd}"><div class="lvh"><div><small>LEVEL ${lv.name}</small><b>${lv.title}</b></div><span>${dn} / ${tot}</span></div><div class="lvbar"><i style="width:${dn/tot*100}%"></i></div>
     <div class="lvsub">${lv.units.length} 个单元 · ${lv.units.reduce((a,u)=>a+u.items.length,0)} 个词句</div></section>`;
@@ -1639,9 +2026,8 @@ function renderHome(){
     lv.units.forEach(u=>{
       h+=`<div class="ut"><span><span class="pic">${u.icon}</span> ${esc(u.name)}</span></div><div class="nodes">`;
       for(let k=0;k<u.nL;k++){
-        const st=nodeState(u,k),rev=k===u.chunks.length;
-        const g=rev?'🏆':iconOf(u.chunks[k][0].pic);
-        h+=`<button class="node ${st}${S.set.all&&st==='locked'?' open':''}" style="--c:${lv.c};--cd:${lv.cd};--x:${ZZ[k%ZZ.length]}px" data-g="${u.gi}" data-k="${k}" aria-label="${esc(u.name)} 第${k+1}课">${st==='cur'?`<em class="bub">${rev?'考试':'开始'}</em>`:''}<span class="pic">${g}</span></button>`;
+        const st=nodeState(u,k),g=k?MODS[k][1]:iconOf(u.items[0].pic);
+        h+=`<button class="node ${st}${S.set.all&&st==='locked'?' open':''}" style="--c:${lv.c};--cd:${lv.cd};--x:${ZZ[k%ZZ.length]}px" data-g="${u.gi}" data-k="${k}" aria-label="${esc(u.name)} ${MODS[k][0]}">${st==='cur'?`<em class="bub">${MODS[k][0]}</em>`:''}<span class="pic">${g}</span></button>`;
       }
       h+='</div>';
     });
@@ -1708,29 +2094,37 @@ function mkQ(t,it){
   }
   return {t,it,opts:shuffle([it].concat(distract(it,t==='listen')))};
 }
+/* 主题小测验：AA 用图片作答（qpic），A 级以后用文字作答（qtext） */
+function mkQuiz(u,z){
+  const pic=u.li===0;
+  const res=s=>{
+    if(!pic)return {text:s,pic:'-'};
+    if(s[0]==='=')return {text:'',pic:s.slice(1)};
+    const f=u.level.units.flatMap(x=>x.items).find(x=>x.text===s)||ALL.find(x=>x.text===s);
+    return f?{text:f.text,pic:f.pic,kw:f.kw}:{text:s,pic:'-'};
+  };
+  const a=res(z.a),opts=shuffle([a].concat(z.w.map(res)));
+  return {t:pic?'qpic':'qtext',it:{text:z.q,zh:z.zh,pic:'-'},z,opts,ans:opts.indexOf(a)};
+}
 function buildLesson(u,k){
-  const head=[];let tail=[];
-  if(k<u.chunks.length){
-    const fresh=u.chunks[k];
-    if(S.set.group){
-      // 先学后考：连着学完这几个新词 → “认一认”总览 → 再集中考
-      fresh.forEach((it,n)=>head.push({t:'teach',it,n:n+1,of:fresh.length}));
-      head.push({t:'recap',it:fresh[0],items:fresh});
-      shuffle(fresh).forEach(it=>head.push(mkQ(firstQ(it),it)));
-    }else fresh.forEach(it=>{head.push(mkQ('teach',it));head.push(mkQ(firstQ(it),it))});
-    shuffle(fresh).slice(0,4).forEach(it=>tail.push(mkQ(qType(it,true),it)));   // 新词再考一轮（最多 4 个，做错的会自动再出现）
-    shuffle(u.chunks.slice(0,k).flat()).slice(0,2).forEach(it=>tail.push(mkQ(qType(it),it)));
-    pickReview(2,u).forEach(it=>tail.push(mkQ(qType(it),it)));
-  }else{
-    u.items.forEach(it=>tail.push(mkQ(qType(it),it)));
-    pickReview(3,u).forEach(it=>tail.push(mkQ(qType(it),it)));
+  const its=u.items;
+  if(k===0){   // 学一学：挨个认识，最后“认一认”总览
+    const q=its.map((it,n)=>({t:'teach',it,n:n+1,of:its.length}));
+    q.push({t:'recap',it:its[0],items:its});
+    return q;
   }
-  tail=shuffle(tail);
-  for(let i=1;i<tail.length;i++)if(tail[i].it===tail[i-1].it&&i+1<tail.length){[tail[i],tail[i+1]]=[tail[i+1],tail[i]]}
-  if(head.length&&tail.length>1&&tail[0].it===head[head.length-1].it)[tail[0],tail[1]]=[tail[1],tail[0]];
-  return head.concat(tail);
+  let qs=[];
+  if(k===1)its.forEach(it=>qs.push(mkQ(firstQ(it),it)));   // 听一听：听音选图
+  else if(k===2)its.forEach(it=>qs.push(mkQ(it.blank?'fill':hasPic(it)?'read':'hear',it)));   // 看一看：看图选词
+  else if(u.quiz)return shuffle(u.quiz.map(z=>mkQuiz(u,z)));   // 小测验：这个主题专门的问题
+  else its.forEach(it=>qs.push(mkQ(qType(it),it)));   // 还没写小测验的单元：混合题型
+  pickReview(k===3?3:2,u).forEach(it=>qs.push(mkQ(qType(it),it)));   // 混入以前学过的内容
+  qs=shuffle(qs);
+  for(let i=1;i<qs.length;i++)if(qs[i].it===qs[i-1].it&&i+1<qs.length){[qs[i],qs[i+1]]=[qs[i+1],qs[i]]}
+  return qs;
 }
 function record(it,right){
+  if(!it.id)return;   // 小测验的问题不计入单词统计
   const s=S.stats[it.id]||(S.stats[it.id]={c:0,w:0,k:0,t:0});
   s.t=Date.now();
   if(right===true){s.c++;s.k++}else if(right===false){s.w++;s.k=0}
@@ -1739,14 +2133,19 @@ function record(it,right){
 /* ================= 课程流程 ================= */
 let LS=null;
 function startLesson(gi,k){
-  actx();
+  bgmStop();
   const u=UNITS[gi];
   LS={u,k,q:buildLesson(u,k),i:0,ok:0,bad:0,combo:0,best:0,re:new Set(),sel:null,ans:false,lvOpen:levelCur(u.li)>=0};
   show('lesson');renderQ();
 }
 function setBar(){$('#lBar').style.width=(LS.i/LS.q.length*100)+'%'}
 const SAY=`<button class="spk" data-say aria-label="再听一遍">${SPK}</button><button class="spk slow" data-slow aria-label="慢速">🐢</button>`;
-const textHTML=it=>it.blank?esc(it.blank.pre)+'<mark>'+esc(it.blank.answer)+'</mark>'+esc(it.blank.post):esc(it.text);
+// 关键词标红（*big* 标记的词），选词填空的答案用黄底
+function textHTML(it){
+  if(it.blank)return esc(it.blank.pre)+'<mark>'+esc(it.blank.answer)+'</mark>'+esc(it.blank.post);
+  const t=esc(it.text);if(!it.kw)return t;
+  return t.replace(new RegExp('\\b('+esc(it.kw).replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')\\b'),'<b class="kw">$1</b>');
+}
 function renderQ(){
   const q=LS.q[LS.i],it=q.it;LS.sel=null;LS.ans=false;
   setBar();
@@ -1765,16 +2164,21 @@ function renderQ(){
     record(it,null);
   }else if(q.t==='recap'){
     h=`<span class="badge">👀 认一认：点卡片再听一遍</span>
-      <div class="rgrid">${q.items.map((o,i)=>`<button class="rcard" data-r="${i}">${hasPic(o)?picHTML(o.pic,16,80):''}<b>${esc(o.text)}</b><small>${esc(o.zh)}</small></button>`).join('')}</div>`;
-    main.textContent='开始考一考 🎯';main.disabled=false;
+      <div class="rgrid">${q.items.map((o,i)=>`<button class="rcard" data-r="${i}">${hasPic(o)?picHTML(o.pic,16,80):''}<b>${textHTML(o)}</b><small>${esc(o.zh)}</small></button>`).join('')}</div>`;
+    main.textContent='学完啦 ✓';main.disabled=false;
   }else if(q.t==='listen'){
     h=`<h2>听一听，选出正确的图片</h2>
-      <div class="say">${SAY}<div class="sent${S.set.text?'':' hide'}" data-say>${S.set.text?esc(it.text):'🎧 仔细听…'}</div></div>
+      <div class="say">${SAY}<div class="sent${S.set.text?'':' hide'}" data-say>${S.set.text?textHTML(it):'🎧 仔细听…'}</div></div>
       <div class="grid">${q.opts.map((o,i)=>`<button class="opt" data-i="${i}"><span class="n">${i+1}</span>${picHTML(o.pic,24,130)}</button>`).join('')}</div>`;
   }else if(q.t==='read'||q.t==='hear'){
     h=(q.t==='read'?`<h2>这张图说的是哪一句？</h2><div class="bigpic">${picHTML(it.pic,26,120)}</div>`
                    :`<h2>听一听，选出你听到的句子</h2><div class="say">${SAY}</div>`)+
-      `<div class="tlist">${q.opts.map((o,i)=>`<button class="topt" data-i="${i}"><span class="n">${i+1}</span>${esc(o.text)}</button>`).join('')}</div>`;
+      `<div class="tlist">${q.opts.map((o,i)=>`<button class="topt" data-i="${i}"><span class="n">${i+1}</span>${textHTML(o)}</button>`).join('')}</div>`;
+  }else if(q.t==='qpic'||q.t==='qtext'){
+    h=`<span class="badge">🧩 小测验</span>
+      <div class="say">${SAY}<div class="sent" data-say>${esc(it.text)}<small class="qzh">${esc(it.zh)}</small></div></div>`+
+      (q.t==='qpic'?`<div class="grid">${q.opts.map((o,i)=>`<button class="opt" data-i="${i}"><span class="n">${i+1}</span>${picHTML(o.pic,24,130)}</button>`).join('')}</div>`
+        :`<div class="tlist">${q.opts.map((o,i)=>`<button class="topt" data-i="${i}"><span class="n">${i+1}</span>${esc(o.text)}</button>`).join('')}</div>`);
   }else if(q.t==='fill'){
     h=`<h2>听一听，选出空格里的词</h2>
       <div class="say">${SAY}</div>${hasPic(it)?`<div class="bigpic">${picHTML(it.pic,26,120)}</div>`:''}
@@ -1799,7 +2203,7 @@ function select(i){
   const q=LS.q[LS.i];if(LS.ans||!q.opts||i>=q.opts.length)return;
   LS.sel=i;sfx('tap');
   document.querySelectorAll('.opt,.topt,.chip-w').forEach((b,j)=>b.classList.toggle('sel',j===i));
-  if(q.t==='read')speak(q.opts[i].text);
+  if(q.t==='read'||q.t==='qtext')speak(q.opts[i].text);
   if(q.t==='fill')$('#fBlank').textContent=q.opts[i];
   $('#lMain').disabled=false;
 }
@@ -1815,30 +2219,34 @@ function pop(){
   setTimeout(()=>p.remove(),1200);
 }
 function check(){
-  const q=LS.q[LS.i],it=q.it;
-  const isAns=o=>q.t==='fill'?o===it.blank.answer:o===it;
-  const right=q.t==='order'?q.placed.map(i=>q.w[i]).join(' ')===q.w.join(' '):isAns(q.opts[LS.sel]);
+  const q=LS.q[LS.i],it=q.it,quiz=q.ans!=null;
+  const isAns=j=>quiz?j===q.ans:q.t==='fill'?q.opts[j]===it.blank.answer:q.opts[j]===it;
+  const right=q.t==='order'?q.placed.map(i=>q.w[i]).join(' ')===q.w.join(' '):isAns(LS.sel);
   LS.ans=true;record(it,right);
   if(q.t==='order'){$('#oAns').classList.add(right?'right':'wrong');$('#oBank').querySelectorAll('.wt').forEach(b=>b.disabled=true)}
   else document.querySelectorAll('.opt,.topt,.chip-w').forEach((b,j)=>{
     b.classList.remove('sel');
-    if(isAns(q.opts[j]))b.classList.add('right');else if(j===LS.sel)b.classList.add('wrong');
+    if(isAns(j))b.classList.add('right');else if(j===LS.sel)b.classList.add('wrong');
   });
+  // 反馈里显示的内容：小测验显示“问题 → 答案”，其余显示这个词句
+  const ao=quiz?q.opts[q.ans]:null,aText=quiz?(ao.text||''):it.text;
+  const shown=quiz?`${esc(it.text)} → ${ao.text?textHTML(ao):(ao.pic[0]==='#'?'绿色框里的图':ao.pic)}`:`${textHTML(it)} <span>${esc(it.zh)}</span>`;
   if(q.t==='fill'){const b=$('#fBlank');b.textContent=it.blank.answer;b.classList.add(right?'ok':'no')}
   LS.i++;setBar();LS.i--;
   const foot=$('#lFoot'),fb=$('#lFb'),main=$('#lMain');
   if(right){
     LS.ok++;LS.combo++;LS.best=Math.max(LS.best,LS.combo);
-    sfx('ok');pop();speak('Amazing!');
+    sfx('ok');pop();praise('Amazing!');
     foot.className='foot ok';
-    fb.innerHTML=`<div class="face">🌙</div><div><b>Amazing! 🎉</b><p>${esc(it.text)} <span>${esc(it.zh)}</span>${LS.combo>=3?' · 🔥 连对 '+LS.combo+' 题':''}</p></div>`;
+    fb.innerHTML=`<div class="face">🌙</div><div><b>Amazing! 🎉</b><p>${shown}${LS.combo>=3?' · 🔥 连对 '+LS.combo+' 题':''}</p></div>`;
   }else{
     LS.bad++;LS.combo=0;
     sfx('bad');stopSpeak();
-    setTimeout(()=>{if(LS&&LS.ans&&LS.q[LS.i].it===it)speak(it.text)},750);   // 先让错误提示音响完，再读正确答案
+    setTimeout(()=>{if(LS&&LS.ans&&LS.q[LS.i]===q)speak(aText||it.text)},750);   // 先让错误提示音响完，再读正确答案
     foot.className='foot bad';
-    fb.innerHTML=`<div class="face">🤔</div><div><b>正确答案：</b><p>${esc(it.text)} <span>${esc(it.zh)}</span></p></div>`;
-    if(!LS.re.has(it.id)){LS.re.add(it.id);LS.q.push(mkQ(q.t,it))}   // 做错的题放到最后再考一次
+    fb.innerHTML=`<div class="face">🤔</div><div><b>正确答案：</b><p>${shown}</p></div>`;
+    const rid=it.id||'quiz:'+it.text;   // 做错的题放到最后再考一次
+    if(!LS.re.has(rid)){LS.re.add(rid);LS.q.push(quiz?mkQuiz(LS.u,q.z):mkQ(q.t,it))}
   }
   $('#lCombo').textContent=LS.combo>=2?'🔥 '+LS.combo:'';
   main.textContent='继续';main.disabled=false;
@@ -1877,19 +2285,24 @@ function finish(){
   const t=today(),y=new Date();y.setDate(y.getDate()-1);
   if(S.last!==t){S.streak=S.last===today(y)?S.streak+1:1;S.last=t}
   save();
-  const li=LS.u.li,lvup=LS.lvOpen&&levelCur(li)<0,after=li+1,exam=LS.k===LS.u.chunks.length;   // lvup：这一课学完了整个级别
+  const li=LS.u.li,lvup=LS.lvOpen&&levelCur(li)<0,after=li+1,mod=LS.k;   // lvup：这一课学完了整个级别
   if(lvup&&after<LEVELS.length){S.lv=after;save()}
-  const stars=acc>=90?3:acc>=70?2:1;
+  const stars=acc>=90?3:acc>=70?2:1,perfect=n>0&&LS.bad===0;
   $('#lBar').style.width='100%';
-  sfx('win');speak(lvup?'Level up! You are amazing!':'Great job!');
-  $('#fBody').innerHTML=`<div class="hero">${lvup?'🏆':'🌙'}</div>
-    <h1>${lvup?'级别完成！':exam?'单元考试完成！':'课程完成！'}</h1>
+  // 每节学完都鼓掌；全部做对（一次都没错）就换成欢呼
+  sfx(perfect||lvup?'cheer':'clap');
+  praise(lvup?'Level up! You are amazing!':perfect?'Perfect! You are amazing!':n?'Great job!':'Well done!');
+  const title=lvup?'级别完成！':perfect?'全部答对！':['学完啦！','听力练习完成！','看图练习完成！','小测验完成！'][mod];
+  $('#fBody').innerHTML=`<div class="hero">${lvup||perfect?'🏆':'🌙'}</div>
+    <h1>${title}</h1>
+    <div class="lvup">${esc(LS.u.name)} · ${MODS[mod][0]}</div>
     ${lvup?`<div class="lvup">${'LEVEL '+LEVELS[li].name+' 全部完成！'+(after<LEVELS.length?' 下一站：LEVEL '+LEVELS[after].name+' · '+LEVELS[after].title:'')}</div>`:''}
     <div class="stars">${[0,1,2].map(i=>`<span class="${i<stars?'':'off'}">⭐</span>`).join('')}</div>
     <div class="tiles">
       <div class="tile" style="--tc:#ffc800"><b>获得经验</b><span>⭐ +${xp}</span></div>
-      <div class="tile" style="--tc:#58cc02"><b>正确率</b><span>🎯 ${acc}%</span></div>
-      <div class="tile" style="--tc:#ff9600"><b>最多连对</b><span>🔥 ${LS.best}</span></div>
+      ${n?`<div class="tile" style="--tc:#58cc02"><b>正确率</b><span>🎯 ${acc}%</span></div>
+      <div class="tile" style="--tc:#ff9600"><b>最多连对</b><span>🔥 ${LS.best}</span></div>`
+      :`<div class="tile" style="--tc:#58cc02"><b>认识了</b><span>📖 ${LS.u.items.length} 个</span></div>`}
     </div>`;
   LS=null;show('finish');
 }
@@ -1919,7 +2332,7 @@ function openSettings(){
     <div class="row"><div>设备语音<small>iPad 推荐 Samantha</small></div><select id="sVoice">${vopts||'<option>（没有找到英文语音）</option>'}</select></div>
     <div class="row"><div>语速<small id="sRateV">${S.set.rate.toFixed(2)}</small></div><input type="range" id="sRate" min="0.55" max="1.1" step="0.05" value="${S.set.rate}"></div>
     <div class="row"><div>题目显示英文<small>关掉就是纯听力练习</small></div><button class="sw${S.set.text?' on':''}" data-k="text"></button></div>
-    <div class="row"><div>先学后考<small>开：先连着学完新词再集中考；关：学一个考一个</small></div><button class="sw${S.set.group?' on':''}" data-k="group"></button></div>
+    <div class="row"><div>背景音乐<small>在选课页面循环播放</small></div><button class="sw${S.set.music?' on':''}" data-k="music"></button></div>
     <div class="row"><div>音效</div><button class="sw${S.set.sfx?' on':''}" data-k="sfx"></button></div>
     <div class="row"><div>家长模式：解锁全部<small>可以点任意一课</small></div><button class="sw${S.set.all?' on':''}" data-k="all"></button></div>
     <div class="btns"><button class="btn ghost" id="sTest">🔊 试听</button></div>
@@ -1930,7 +2343,7 @@ function openSettings(){
   $('#sVoice').onchange=e=>{S.set.voice=e.target.value;save();loadVoices();speak('Hello! Let\'s learn English.')};
   $('#sRate').oninput=e=>{S.set.rate=+e.target.value;$('#sRateV').textContent=S.set.rate.toFixed(2);save()};
   $('#sRate').onchange=()=>speak('I like apples.');
-  document.querySelectorAll('.sw').forEach(b=>b.onclick=()=>{const k=b.dataset.k;S.set[k]=!S.set[k];b.classList.toggle('on',S.set[k]);save();if(k==='all')renderHome()});
+  document.querySelectorAll('.sw').forEach(b=>b.onclick=()=>{const k=b.dataset.k;S.set[k]=!S.set[k];b.classList.toggle('on',S.set[k]);save();if(k==='all')renderHome();if(k==='music'){S.set.music?bgmPlay():bgmStop();musicIcon()}});
   $('#sTest').onclick=()=>{actx();speak('Hello! I see a cat. Amazing!')};
   let armed=false;
   $('#sReset').onclick=e=>{
@@ -1939,6 +2352,9 @@ function openSettings(){
   };
 }
 $('#hSet').addEventListener('click',openSettings);
+function musicIcon(){$('#hMusic').classList.toggle('off',!S.set.music)}
+$('#hMusic').addEventListener('click',()=>{S.set.music=!S.set.music;save();musicIcon();S.set.music?bgmPlay():bgmStop();toast(S.set.music?'背景音乐：开':'背景音乐：关')});
+musicIcon();
 
 renderHome();
 window.__E={S,LEVELS,UNITS,ALL,buildLesson,startLesson};
