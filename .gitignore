@@ -4,3 +4,6 @@ start.bat
 
 # 试听用的声音样本，不上传
 voice-samples/
+
+# Claude 的本地设置（权限等），不上传
+.claude/
