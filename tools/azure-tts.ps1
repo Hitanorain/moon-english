@@ -14,6 +14,8 @@ function Invoke-Tts {
   param([string]$Text, [string]$Voice, [string]$OutFile, [string]$Style = '', [string]$Rate = '-8%', [string]$Pitch = '0%')
   $inner = "<prosody rate='$Rate' pitch='$Pitch'>$(ConvertTo-XmlText $Text)</prosody>"
   if ($Style) { $inner = "<mstts:express-as style='$Style'>$inner</mstts:express-as>" }
+  # Multilingual voices guess the language of every sentence (e.g. "I like bananas." came out non-English); pin it to English.
+  if ($Voice -match 'Multilingual') { $inner = "<lang xml:lang='en-US'>$inner</lang>" }
   $ssml = "<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xmlns:mstts='https://www.w3.org/2001/mstts' xml:lang='en-US'><voice name='$Voice'>$inner</voice></speak>"
   $headers = @{
     'Ocp-Apim-Subscription-Key' = $script:TtsKey
