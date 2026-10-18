@@ -1993,13 +1993,26 @@ function bgmData(){
            [69,1],[72,1],[77,2],[81,2],[79,2], [76,1],[79,1],[84,2],[79,2],[76,2], [77,2],[76,1],[74,1],[69,2],[74,2], [79,2],[77,1],[76,1],[74,4]];
   const C=[[72,2],[76,2],[81,3],[79,1], [79,2],[76,2],[71,4], [72,1],[74,1],[76,2],[77,2],[81,2], [79,6],[0,2],
            [77,2],[74,2],[81,2],[77,2], [79,2],[74,2],[71,2],[74,2], [72,2],[76,2],[79,2],[84,2], [83,2],[79,1],[77,1],[74,1],[71,1],[72,1],[74,1]];   // 最后一小节不停，一串音跑上去，落到开头第一个音 E
-  let t=0;[A,B,A,C].forEach(sec=>sec.forEach(([m,l])=>{if(m)addTone(d,[mf(m),t*e,e*(l+.6),.11,'pulse'],true);t+=l}));
+  let t=0;[A,B,A,C].forEach(sec=>sec.forEach(([m,l])=>{if(m)addTone(d,[mf(m),t*e,e*(l+.6),.12,'pulse'],true);t+=l}));
   // 每小节的和弦：[根音, 三度]（4 大三度，3 小三度）
   const cA=[[48,4],[43,4],[45,3],[41,4],[48,4],[43,4],[41,4],[48,4]],
         cB=[[41,4],[48,4],[43,4],[48,4],[41,4],[48,4],[50,3],[43,4]],
         cC=[[45,3],[52,3],[41,4],[48,4],[50,3],[43,4],[48,4],[43,4]];
+  // 长铺底：两个略微走音的正弦叠在一起，慢慢起、慢慢收，像软软的弦乐垫在下面
+  const pad=(m,t0,len,vol)=>{
+    const f=mf(m),s0=Math.round(t0*SR),L=Math.round(len*SR),at=SR*.35,rl=SR*.45,w=2*Math.PI*f/SR;
+    for(let i=0;i<L;i++)d[(s0+i)%n]+=(Math.sin(w*i)+.7*Math.sin(w*1.004*i)+.15*Math.sin(2*w*i))*vol*Math.min(1,i/at,(L-i)/rl);
+  };
+  // 拍手：很短的一下噪声，打在第 2、4 拍
+  const clap=(t0,vol)=>{const s0=Math.round(t0*SR);let lp=0;for(let j=0;j<SR*.08;j++){const x=rnd()*2-1;lp+=(x-lp)*.6;d[(s0+j)%n]+=(x-lp)*vol*Math.exp(-j/(SR*.018))}};
+  const ARP=[0,7,12,16,19,16,12,7];   // 分解和弦的走法（第 4 个音按大小三度换）
   [...cA,...cB,...cA,...cC].forEach(([r,th],b)=>{
     const t0=b*4*beat,sec=b>>3,light=sec===1;
+    // 分解和弦：比主旋律低一个八度左右，轻轻地一个八分音符一个音；B 段更轻
+    ARP.forEach((x,k)=>addTone(d,[mf(r+(x===16?12+th:x)),t0+k*e,e*1.8,light?.026:.034,'tri'],true));
+    if(sec===1||sec===3)[0,th,7].forEach(x=>pad(r+12+x,t0,beat*4+.25,.016));   // B、C 段垫一层长音
+    if(!light)[1,3].forEach(q=>clap(t0+q*beat,sec===0?.05:.07));   // 拍手（B 段不拍，留出安静的感觉）
+    if(sec>=2)addTone(d,[mf(r),t0+3.5*beat,e*1.2,.14,'tri'],true);   // 第二遍 A 段和 C 段：低音在最后半拍往上跳一个八度
     [0,2].forEach(q=>addTone(d,[mf(r-12),t0+q*beat,beat*1.2,light?.2:.26,'tri'],true));   // 低音
     [1,3].forEach(q=>[0,th,7].forEach(x=>addTone(d,[mf(r+12+x),t0+q*beat,beat*.5,.045],true)));   // 和弦
     (light?[0]:[0,2]).forEach(q=>addTone(d,[140,t0+q*beat,.14,.32,'sine',45],true));   // 底鼓（B 段只打第一拍）
