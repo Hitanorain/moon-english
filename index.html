@@ -2505,16 +2505,19 @@ const Buddy=(()=>{
     raf=0;const dt=Math.min(50,now-(last||now));last=now;
     g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,W,H);
     const sleep=now-moved>4000;
-    // 月亮：弹簧一样跟在光标右下方，轻轻上下浮动
-    const tx=mx+34,ty=my+30,k=1-Math.pow(.78,dt/16);bx+=(tx-bx)*k;by+=(ty-by)*k;
+    // 月亮：弹簧一样跟在光标右下方，轻轻上下浮动；睡着时慢慢飘到光标右边，不被大箭头挡住
+    const tx=mx+(sleep?66:34),ty=my+(sleep?14:30),k=1-Math.pow(sleep?.95:.78,dt/16);bx+=(tx-bx)*k;by+=(ty-by)*k;
     if(sleep&&Math.random()<dt/900)add(bx+14,by-18,.25,-.5,1600,12,'z');
+    if(sleep&&Math.random()<dt/450)add(bx+(Math.random()-.5)*60,by-50-Math.random()*16,0,.45+Math.random()*.25,2000,6+Math.random()*4,'fall');   // 睡梦里的小星星从月亮上方慢慢落下
     for(let i=parts.length-1;i>=0;i--){
       const p=parts[i];p.t+=dt;if(p.t>=p.life){parts.splice(i,1);continue}
       const f=p.t/p.life;p.x+=p.vx*dt/16;p.y+=p.vy*dt/16;p.rot+=p.spin*dt/16;
       if(p.kind==='z'){g.globalAlpha=1-f;g.fillStyle='#8a7cff';g.font=`900 ${p.size+f*8}px sans-serif`;g.fillText('z',p.x,p.y);continue}
-      p.vy+=.02*dt/16;p.vx*=.98;
-      const tw=.75+.25*Math.sin(p.t/60+p.rot*3);g.globalAlpha=(1-f)*tw;
+      const fall=p.kind==='fall';
+      if(fall)p.x+=Math.sin(p.t/280+p.rot)*.35*dt/16;else{p.vy+=.02*dt/16;p.vx*=.98}   // 下落的星星不加重力，左右轻轻摆着匀速落
+      const tw=.75+.25*Math.sin(p.t/60+p.rot*3);g.globalAlpha=(fall?Math.min(1,f*6)*(1-f):1-f)*tw;
       g.save();g.translate(p.x,p.y);g.rotate(p.rot);g.fillStyle=g.strokeStyle=p.c;g.lineJoin='round';g.lineWidth=2;
+      if(fall){g.shadowColor=p.c;g.shadowBlur=10}
       star(0,0,p.size*(1-f*.5));g.fill();g.stroke();g.restore();
     }
     g.globalAlpha=1;
