@@ -2493,15 +2493,9 @@ const Buddy=(()=>{
     if(mood===1){x.beginPath();x.arc(20.5,29,3.2,0,7);x.fill();x.fillStyle='#fff';x.beginPath();x.arc(21.7,27.8,1.2,0,7);x.fill();
       x.fillStyle='#ff6b6b';x.beginPath();x.moveTo(18.5,39);x.quadraticCurveTo(23,46,26.5,38);x.closePath();x.fill();}
     else if(mood===2){
-      // 睡着：向下弯的闭眼“︶”、小小的弯嘴角，再戴一顶带小绒球的蓝色睡帽（压在月牙上沿）
+      // 睡着：向下弯的闭眼“︶”、小小的弯嘴角
       x.beginPath();x.arc(20.5,28.5,3.2,Math.PI*.12,Math.PI*.88);x.stroke();
       x.beginPath();x.arc(22,38.5,2.2,Math.PI*.2,Math.PI*.8);x.stroke();
-      // 睡帽套在月牙的上角（月亮的“头顶”）：帽身先往上立起，再向右垂下来，小绒球挂在末端
-      x.lineJoin='round';x.lineWidth=2;x.fillStyle='#5b8def';x.strokeStyle='#3a6bc9';
-      x.beginPath();x.moveTo(27,13);x.quadraticCurveTo(27,1,40,1.5);x.quadraticCurveTo(55,2.5,57,17);x.quadraticCurveTo(52,8,43,15.5);x.closePath();x.fill();x.stroke();
-      x.fillStyle='#fff';[[34,6.5],[44,5],[51,9.5]].forEach(([a,b])=>{x.beginPath();x.arc(a,b,1.1,0,7);x.fill()});   // 帽子上的小白点
-      x.lineCap='round';x.lineWidth=5;x.strokeStyle='#fff';x.beginPath();x.moveTo(26,13);x.quadraticCurveTo(35,17.5,44,15.5);x.stroke();   // 白色帽边，弯着套住上角
-      x.fillStyle='#fff';x.strokeStyle='#c9d6ee';x.lineWidth=1.2;x.beginPath();x.arc(57,18.5,3.6,0,7);x.fill();x.stroke();   // 小绒球
     }
     else{x.beginPath();x.arc(20.5,30.5,3,Math.PI*1.1,Math.PI*1.9);x.stroke();x.beginPath();x.arc(22,38,3.6,Math.PI*.15,Math.PI*.85);x.stroke();}
     return c;
