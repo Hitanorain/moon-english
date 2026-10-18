@@ -1981,9 +1981,9 @@ function cheerWav(){
   return wavURL(d);
 }
 /* 背景音乐：C 大调欢快小曲，112 拍/分，32 小节，大约 69 秒一轮，首尾相接循环播放。
-   A 段（原来的 8 小节）→ B 段（新旋律，伴奏轻一点）→ A 段再来一遍，加上叮叮的铃铛 → C 段（收尾，最后停在 G 和弦，接回开头）。
+   A 段（原来的 8 小节）→ B 段（新旋律，伴奏轻一点）→ A 段再来一遍，加上叮叮的铃铛 → C 段（收尾，最后一小节用 G 和弦上的一串音直接引回开头，循环时听不出停顿）。
    iPad 不能用代码调 <audio> 音量，所以直接把音量做小 */
-function bgmWav(){
+function bgmData(){
   const beat=60/112,e=beat/2,bars=32,n=Math.round(SR*beat*4*bars),d=new Float32Array(n),mf=m=>440*Math.pow(2,(m-69)/12);
   // 旋律：[音高, 几个八分音符]，0 是休止
   const one=a=>a.map(m=>[m,1]);
@@ -1992,7 +1992,7 @@ function bgmWav(){
   const B=[[69,2],[72,2],[77,3],[76,1], [76,2],[74,1],[72,1],[67,4], [71,2],[74,2],[79,2],[77,1],[76,1], [76,3],[74,1],[72,4],
            [69,1],[72,1],[77,2],[81,2],[79,2], [76,1],[79,1],[84,2],[79,2],[76,2], [77,2],[76,1],[74,1],[69,2],[74,2], [79,2],[77,1],[76,1],[74,4]];
   const C=[[72,2],[76,2],[81,3],[79,1], [79,2],[76,2],[71,4], [72,1],[74,1],[76,2],[77,2],[81,2], [79,6],[0,2],
-           [77,2],[74,2],[81,2],[77,2], [79,2],[74,2],[71,2],[74,2], [72,2],[76,2],[79,2],[84,2], [83,2],[79,2],[74,2],[0,2]];
+           [77,2],[74,2],[81,2],[77,2], [79,2],[74,2],[71,2],[74,2], [72,2],[76,2],[79,2],[84,2], [83,2],[79,1],[77,1],[74,1],[71,1],[72,1],[74,1]];   // 最后一小节不停，一串音跑上去，落到开头第一个音 E
   let t=0;[A,B,A,C].forEach(sec=>sec.forEach(([m,l])=>{if(m)addTone(d,[mf(m),t*e,e*(l+.6),.11,'pulse'],true);t+=l}));
   // 每小节的和弦：[根音, 三度]（4 大三度，3 小三度）
   const cA=[[48,4],[43,4],[45,3],[41,4],[48,4],[43,4],[41,4],[48,4]],
@@ -2010,7 +2010,7 @@ function bgmWav(){
   [5,6,7].forEach(k=>{const s0=Math.round(((bars-1)*8+k)*e*SR);for(let j=0;j<SR*.06;j++)d[(s0+j)%n]+=(rnd()*2-1)*.09*Math.exp(-j/(SR*.02))});
   let pk=0;for(let i=0;i<n;i++)pk=Math.max(pk,Math.abs(d[i]));
   for(let i=0;i<n;i++)d[i]*=.3/pk;
-  return wavURL(d);
+  return d;
 }
 const SND={
   ok:wav([[880,0,.14,.45],[1318,.1,.32,.45]],.45),
@@ -2026,12 +2026,26 @@ function sfx(k){
 }
 // 夸奖用更高、更快一点的语气（设备语音有效；在线朗读的声音是固定的）
 const praise=t=>speak(t,false,false,null,1.35);
-let BGM=null;
+let BGM=null,BCX=null;
+// <audio loop> 每次绕回开头都会有几十毫秒的空隙，所以优先用 WebAudio 的循环（采样级无缝）。
+// iPad 只有支持 audioSession（上面设成了 playback，不受静音键影响）才用 WebAudio，否则退回 <audio loop>
+const IOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+const WA=window.AudioContext||window.webkitAudioContext,bgmGapless=!!WA&&(!IOS||!!navigator.audioSession);
 function bgmPlay(){
   if(!S.set.music||!$('#home').classList.contains('on'))return;
-  try{if(!BGM){BGM=new Audio(bgmWav());BGM.loop=true}if(BGM.paused){const p=BGM.play();if(p&&p.catch)p.catch(()=>{})}}catch(e){}
+  try{
+    if(bgmGapless){
+      if(!BCX){
+        BCX=new WA();const d=bgmData(),b=BCX.createBuffer(1,d.length,SR);b.getChannelData(0).set(d);
+        const src=BCX.createBufferSource();src.buffer=b;src.loop=true;src.connect(BCX.destination);src.start();
+      }
+      if(BCX.state!=='running')BCX.resume().catch(()=>{});
+      return;
+    }
+    if(!BGM){BGM=new Audio(wavURL(bgmData()));BGM.loop=true}if(BGM.paused){const p=BGM.play();if(p&&p.catch)p.catch(()=>{})}
+  }catch(e){}
 }
-function bgmStop(){if(BGM)BGM.pause()}
+function bgmStop(){if(BCX&&BCX.state==='running')BCX.suspend().catch(()=>{});if(BGM)BGM.pause()}
 // 浏览器要等用户点一下才允许播放声音：首页上第一次点击时开始放音乐
 document.addEventListener('pointerdown',()=>bgmPlay());
 function actx(){}
