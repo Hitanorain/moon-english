@@ -224,6 +224,25 @@ mark{background:#fff3b0;color:inherit;border-radius:6px;padding:0 4px}
 .btn.red{background:var(--red);box-shadow:0 5px 0 var(--red-d)}
 .ver{text-align:center;color:var(--faint);font-size:12px;margin-top:14px}
 
+/* 用鼠标时（电脑）：大号黄色光标 + 跟随光圈，底部按钮抬高加大；iPad 触屏不受影响 */
+html.mouse,html.mouse *{cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Cpath d='M5 3v34l9-8 6 14 6-2.5-5.5-13H32z' fill='%23ffd400' stroke='%23222' stroke-width='3' stroke-linejoin='round'/%3E%3C/svg%3E") 5 4,auto!important}
+.halo{position:fixed;left:0;top:0;z-index:100;pointer-events:none;width:76px;height:76px;margin:-38px 0 0 -38px;border-radius:50%;display:none;
+  background:radial-gradient(circle,rgba(255,212,0,.38) 0,rgba(255,212,0,.16) 55%,rgba(255,212,0,0) 72%);border:3px solid rgba(255,140,0,.85);
+  transition:width .15s,height .15s,margin .15s,border-color .15s,background .15s}
+html.mouse .halo.on{display:block}
+.halo::after{content:"";position:absolute;inset:-3px;border-radius:50%;border:3px solid rgba(255,140,0,.6);animation:halo 1.4s ease-out infinite}
+@keyframes halo{from{transform:scale(1);opacity:1}to{transform:scale(1.45);opacity:0}}
+.halo.hot{width:96px;height:96px;margin:-48px 0 0 -48px;border-color:rgba(88,167,0,.75);
+  background:radial-gradient(circle,rgba(88,204,2,.3) 0,rgba(88,204,2,.12) 55%,rgba(88,204,2,0) 72%)}
+.halo.hot::after{border-color:rgba(88,167,0,.5)}
+.ripple{position:fixed;z-index:100;pointer-events:none;width:40px;height:40px;margin:-20px 0 0 -20px;border-radius:50%;border:4px solid #ff9600;animation:ripple .45s ease-out forwards}
+@keyframes ripple{to{transform:scale(2.6);opacity:0}}
+:root{--lift:0px}
+html.mouse{--lift:clamp(48px,10vh,100px)}
+html.mouse .foot{padding-bottom:calc(16px + var(--lift))}
+html.mouse .foot .btn{padding:20px;font-size:21px}
+html.mouse .grid{max-width:calc(100vh - 400px - var(--lift));max-width:calc(100dvh - 400px - var(--lift))}
+
 @media (max-width:420px){
   .lbody h2{font-size:19px}
   .sent{font-size:20px}
@@ -272,7 +291,7 @@ mark{background:#fff3b0;color:inherit;border-radius:6px;padding:0 4px}
 <script src="audio/manifest.js"></script>
 <script>
 'use strict';
-const VERSION='3.2';
+const VERSION='3.3';
 const KEY='moon-english-v1';
 
 /* ================= 课程内容 =================
@@ -2413,6 +2432,32 @@ $('#hSet').addEventListener('click',openSettings);
 function musicIcon(){$('#hMusic').classList.toggle('off',!S.set.music)}
 $('#hMusic').addEventListener('click',()=>{S.set.music=!S.set.music;save();musicIcon();S.set.music?bgmPlay():bgmStop();toast(S.set.music?'背景音乐：开':'背景音乐：关')});
 musicIcon();
+
+/* ================= 鼠标光圈 / 底部大点击区 ================= */
+// 只在真的用鼠标时开启（iPad 触屏不会触发），让小朋友在白底上一眼找到鼠标，移到能点的东西上光圈变绿
+const HALO=document.createElement('div');HALO.className='halo';document.body.appendChild(HALO);
+const HOT='button:not(:disabled),select,input,[data-i],[data-r],[data-b],[data-a],[data-say],[data-slow],[data-zh]';
+const footBtn=f=>f&&f.querySelector('.btn');
+document.addEventListener('pointermove',e=>{
+  if(e.pointerType!=='mouse'||!e.target.closest)return;
+  document.documentElement.classList.add('mouse');
+  HALO.style.transform=`translate(${e.clientX}px,${e.clientY}px)`;
+  HALO.classList.add('on');
+  const fb=footBtn(e.target.closest('.foot'));
+  HALO.classList.toggle('hot',!!(e.target.closest(HOT)||fb&&!fb.disabled));
+},{passive:true});
+document.addEventListener('pointerout',e=>{if(!e.relatedTarget)HALO.classList.remove('on')});   // 鼠标移出窗口时藏起来
+document.addEventListener('pointerdown',e=>{
+  if(e.pointerType!=='mouse')return;
+  const r=document.createElement('div');r.className='ripple';r.style.left=e.clientX+'px';r.style.top=e.clientY+'px';
+  document.body.appendChild(r);setTimeout(()=>r.remove(),500);
+});
+// 用鼠标时，点底部整条区域（按钮周围、按钮下面的空白）都算按了按钮，不用瞄准
+document.querySelectorAll('.foot').forEach(foot=>foot.addEventListener('click',e=>{
+  const btn=footBtn(foot);
+  if(!document.documentElement.classList.contains('mouse')||btn.disabled||e.target.closest('button'))return;
+  btn.click();
+}));
 
 renderHome();
 window.__E={S,LEVELS,UNITS,ALL,buildLesson,startLesson};
