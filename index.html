@@ -2048,21 +2048,26 @@ let BGM=null,BCX=null;
 // iPad 只有支持 audioSession（上面设成了 playback，不受静音键影响）才用 WebAudio，否则退回 <audio loop>
 const IOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
 const WA=window.AudioContext||window.webkitAudioContext,bgmGapless=!!WA&&(!IOS||!!navigator.audioSession);
+const bgmWant=()=>S.set.music&&$('#home').classList.contains('on');
 function bgmPlay(){
-  if(!S.set.music||!$('#home').classList.contains('on'))return;
+  if(!bgmWant())return;
   try{
     if(bgmGapless){
       if(!BCX){
         BCX=new WA();const d=bgmData(),b=BCX.createBuffer(1,d.length,SR);b.getChannelData(0).set(d);
         const src=BCX.createBufferSource();src.buffer=b;src.loop=true;src.connect(BCX.destination);src.start();
       }
-      if(BCX.state!=='running')BCX.resume().catch(()=>{});
+      // 点课程按钮时 pointerdown 先触发这里的 resume，click 紧接着进课程调用 bgmStop；
+      // iPad 上 resume 是异步的，会在 bgmStop 之后才完成，所以完成时再确认一次还在首页，不在就停掉
+      if(BCX.state!=='running')BCX.resume().then(()=>{if(!bgmWant())BCX.suspend().catch(()=>{})}).catch(()=>{});
       return;
     }
-    if(!BGM){BGM=new Audio(wavURL(bgmData()));BGM.loop=true}if(BGM.paused){const p=BGM.play();if(p&&p.catch)p.catch(()=>{})}
+    if(!BGM){BGM=new Audio(wavURL(bgmData()));BGM.loop=true}
+    if(BGM.paused){const p=BGM.play();if(p&&p.then)p.then(()=>{if(!bgmWant())BGM.pause()}).catch(()=>{})}
   }catch(e){}
 }
-function bgmStop(){if(BCX&&BCX.state==='running')BCX.suspend().catch(()=>{});if(BGM)BGM.pause()}
+// 不管当前是 suspended 还是 iOS 的 interrupted，都要 suspend：否则正在进行的 resume 完成后音乐会在课程里响起来
+function bgmStop(){if(BCX&&BCX.state!=='closed')BCX.suspend().catch(()=>{});if(BGM)BGM.pause()}
 // 浏览器要等用户点一下才允许播放声音：首页上第一次点击时开始放音乐
 document.addEventListener('pointerdown',()=>bgmPlay());
 function actx(){}
